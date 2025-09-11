@@ -246,7 +246,6 @@ hier,here,false
 om,to,false
 naar,to,false
 dan,then,false
-weet,to know,false
 kan,can,false
 zo,so,false
 nog,yet,false
@@ -255,8 +254,6 @@ moet,must,false
 hem,him,false
 heeft,has,false
 nu,now,false
-ga,to go,false
-kom,to come,false
 uit,from,false
 gaan,to go,false
 bent,are,false
@@ -272,18 +269,15 @@ al,already,false
 bij,by,false
 ons,us,false
 zal,shall,false
-gaat,to go,false
 hebt,have,false
 meer,more,false
 iets,something,false
 laat,late,false
 deze,this,false
 had,had,false
-doe,to do,false
 jou,you,false
 moeten,must,false
 alles,everything,false
-denk,to think,false
 kunnen,can,false
 eens,once,false
 echt,really,false
@@ -318,8 +312,6 @@ kopen,to buy,false
 verkopen,to sell,false
 winkel,shop,false
 markt,market,false
-supermarkt,supermarket,false
-restaurant,restaurant,false
 café,café,false
 hotel,hotel,false
 plaats,place,false
@@ -1627,13 +1619,9 @@ de kracht,strength,false
 de krachttraining,weight training,false
 de liefde,love,false
 de man,man,false
-de manier,way,false
 de nieuwsbrief,newsletter,false
 de school,school,false
 de spierpijn,muscular pain,false
-de sportkleren,sports clothes,false
-de sportschool,sports club,false
-de training,training,false
 de spier,muscles,false
 doelen,goals,false
 elke,each,false
