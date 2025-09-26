@@ -22,6 +22,14 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
   const [error, setError] = useState<string | null>(null);
   const requestInProgress = useRef(false);
 
+  const cleanMarkdown = (text: string): string => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold**
+      .replace(/\*(.*?)\*/g, '$1')      // Remove *italic*
+      .replace(/^["']|["']$/g, '')      // Remove surrounding quotes
+      .trim();
+  };
+
   useEffect(() => {
     if (isVisible && word && translation && !exampleSentence && !isLoading && !error && !requestInProgress.current) {
       generateHint();
@@ -86,7 +94,7 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
 
   return (
     <div className="bg-gray-800 bg-opacity-90 text-white text-sm px-4 py-2 rounded-md shadow-lg min-w-80 max-w-md animate-fade-in">
-      "{exampleSentence}"
+      {cleanMarkdown(exampleSentence)}
     </div>
   );
 };
