@@ -1,12 +1,14 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Theme, ThemeColors } from '../types/theme';
-import { themes } from '../types/theme';
+import type { Theme, ThemeColors, CustomThemeColors } from '../types/theme';
+import { themes, DEFAULT_CUSTOM_THEME } from '../types/theme';
 
 interface ThemeContextType {
   theme: Theme;
   themeColors: ThemeColors;
   setTheme: (theme: Theme) => void;
+  customTheme: CustomThemeColors;
+  setCustomTheme: (theme: CustomThemeColors) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -29,12 +31,29 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     return (saved as Theme) || 'default';
   });
 
+  const [customTheme, setCustomThemeState] = useState<CustomThemeColors>(() => {
+    const saved = localStorage.getItem('fresher-custom-theme');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return DEFAULT_CUSTOM_THEME;
+      }
+    }
+    return DEFAULT_CUSTOM_THEME;
+  });
+
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem('fresher-theme', newTheme);
   };
 
-  const themeColors = themes[theme];
+  const setCustomTheme = (newCustomTheme: CustomThemeColors) => {
+    setCustomThemeState(newCustomTheme);
+    localStorage.setItem('fresher-custom-theme', JSON.stringify(newCustomTheme));
+  };
+
+  const themeColors = theme === 'custom' ? customTheme : themes[theme];
 
   // Apply theme styles to document
   useEffect(() => {
@@ -56,10 +75,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.setProperty('--hint-text', themeColors.hintText);
     root.style.setProperty('--stat-box-bg', themeColors.statBoxBg);
     root.style.setProperty('--stat-box-hover', themeColors.statBoxHover);
+    
+    // Mode selector colors
+    root.style.setProperty('--mode-toggle-bg', themeColors.modeToggleBg || themeColors.buttonBg);
+    root.style.setProperty('--mode-toggle-active', themeColors.modeToggleActive || themeColors.buttonHover);
+    root.style.setProperty('--content-type-bg', themeColors.contentTypeBg || themeColors.buttonBg);
+    root.style.setProperty('--content-type-active', themeColors.contentTypeActive || themeColors.buttonHover);
+    root.style.setProperty('--verb-mode-bg', themeColors.verbModeBg || themeColors.buttonBg);
+    root.style.setProperty('--verb-mode-active', themeColors.verbModeActive || themeColors.buttonHover);
   }, [themeColors]);
 
   return (
-    <ThemeContext.Provider value={{ theme, themeColors, setTheme }}>
+    <ThemeContext.Provider value={{ theme, themeColors, setTheme, customTheme, setCustomTheme }}>
       {children}
     </ThemeContext.Provider>
   );

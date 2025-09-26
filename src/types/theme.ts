@@ -1,4 +1,4 @@
-export type Theme = 'default' | 'duo' | 'oled';
+export type Theme = 'default' | 'duo' | 'oled' | 'custom';
 
 export interface ThemeColors {
   name: string;
@@ -19,9 +19,48 @@ export interface ThemeColors {
   hintText: string;
   statBoxBg: string;
   statBoxHover: string;
+  // Mode selector colors
+  modeToggleBg?: string;
+  modeToggleActive?: string;
+  contentTypeBg?: string;
+  contentTypeActive?: string;
+  verbModeBg?: string;
+  verbModeActive?: string;
 }
 
-export const themes: Record<Theme, ThemeColors> = {
+export interface CustomThemeColors extends ThemeColors {
+  customId: string;
+}
+
+export const DEFAULT_CUSTOM_THEME: CustomThemeColors = {
+  customId: 'custom-theme-v1',
+  name: 'Custom',
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  cardBg: 'rgba(255, 255, 255, 0.1)',
+  textPrimary: '#ffffff',
+  textSecondary: 'rgba(255, 255, 255, 0.8)',
+  textMuted: 'rgba(255, 255, 255, 0.6)',
+  inputBg: 'rgba(255, 255, 255, 0.1)',
+  inputBorder: 'rgba(255, 255, 255, 0.3)',
+  buttonBg: 'rgba(255, 255, 255, 0.2)',
+  buttonHover: 'rgba(255, 255, 255, 0.3)',
+  progressBar: 'linear-gradient(90deg, #10b981 0%, #3b82f6 100%)',
+  correctFeedback: '#10b981',
+  incorrectFeedback: '#ef4444',
+  hintBg: 'rgba(255, 255, 255, 0.15)',
+  hintBorder: 'rgba(255, 255, 255, 0.25)',
+  hintText: '#ffffff',
+  statBoxBg: 'rgba(255, 255, 255, 0.2)',
+  statBoxHover: 'rgba(255, 255, 255, 0.3)',
+  modeToggleBg: 'rgba(255, 255, 255, 0.1)',
+  modeToggleActive: 'rgba(255, 255, 255, 0.3)',
+  contentTypeBg: 'rgba(255, 255, 255, 0.1)',
+  contentTypeActive: 'rgba(255, 255, 255, 0.3)',
+  verbModeBg: 'rgba(255, 255, 255, 0.1)',
+  verbModeActive: 'rgba(255, 255, 255, 0.3)'
+};
+
+export const themes: Record<Exclude<Theme, 'custom'>, ThemeColors> = {
   default: {
     name: 'Default',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
