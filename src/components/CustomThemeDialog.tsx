@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ColorPicker } from './ColorPicker';
-import { CustomThemeColors, DEFAULT_CUSTOM_THEME } from '../types/theme';
+import type { CustomThemeColors } from '../types/theme';
+import { DEFAULT_CUSTOM_THEME } from '../types/theme';
 
 interface CustomThemeDialogProps {
   isOpen: boolean;
