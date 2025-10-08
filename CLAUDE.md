@@ -21,11 +21,36 @@ This file contains project-specific information for Claude Code.
 ## Project Structure
 ```
 src/
-├── components/           # React components (WordCard, InputField, etc.)
-├── contexts/            # React contexts (ThemeContext, AIHintContext)
-├── utils/               # Utilities (csvParser, fuzzyMatch, wordManager, etc.)
+├── components/           # React components
+│   ├── AIHintConfigDialog.tsx    # AI hint configuration dialog
+│   ├── AIHintPopup.tsx           # AI hint display popup
+│   ├── ColorPicker.tsx           # Custom color picker
+│   ├── ContentTypeSwitcher.tsx   # Switch between words/verbs
+│   ├── CustomThemeDialog.tsx     # Custom theme configuration
+│   ├── HintButton.tsx            # Hint trigger button
+│   ├── InputField.tsx            # User input field
+│   ├── ModeToggle.tsx            # Mode selector
+│   ├── ProgressIndicator.tsx     # Progress tracking display
+│   ├── StatsDashboard.tsx        # Statistics dashboard
+│   ├── ThemeChooser.tsx          # Theme selection component
+│   ├── VerbCard.tsx              # Verb practice card
+│   ├── VerbModeSelector.tsx      # Verb mode selection
+│   └── WordCard.tsx              # Word practice card
+├── contexts/            # React contexts
+│   ├── ThemeContext.tsx          # Theme management
+│   └── AIHintContext.tsx         # AI hint state management
+├── utils/               # Utility functions
+│   ├── csvParser.ts              # CSV data parsing
+│   ├── fuzzyMatch.ts             # Fuzzy matching for answers
+│   ├── hintGenerator.ts          # Hint generation logic
+│   ├── storage.ts                # Local storage management
+│   ├── verbManager.ts            # Verb data management
+│   └── wordManager.ts            # Word data management
 ├── types/               # TypeScript type definitions
-├── services/            # AI hint service (Perplexity API)
+│   ├── index.ts                  # Main type exports
+│   └── theme.ts                  # Theme-related types
+├── services/            # External services
+│   └── aiHintService.ts          # Perplexity API integration
 ├── App.tsx              # Main app component
 └── main.tsx             # Entry point
 
@@ -35,9 +60,19 @@ public/data/             # CSV datasets
 ```
 
 ## Dependencies
-- **Runtime**: React 19, Papa Parse (CSV parsing), Tailwind CSS
-- **Dev**: TypeScript, Vite, ESLint, Vitest, @vitejs/plugin-react
-- **Testing**: Vitest with UI support
+- **Runtime**: 
+  - React 19.1.0 & React DOM 19.1.0
+  - Papa Parse 5.5.3 (CSV parsing)
+  - Tailwind CSS 4.1.11 (with PostCSS)
+- **Dev**: 
+  - TypeScript 5.8.3
+  - Vite 7.0.0
+  - ESLint 9.29.0 (with React hooks & refresh plugins)
+  - Vitest 3.2.4 (with UI support)
+  - @vitejs/plugin-react 4.5.2
+  - Autoprefixer 10.4.21
+  - PostCSS 8.5.6
+- **Testing**: Vitest with UI support (@vitest/ui)
 - **AI Integration**: Perplexity API for contextual hints
 
 ## Testing
@@ -54,9 +89,23 @@ public/data/             # CSV datasets
 - Production preview: `npm run preview`
 
 ## Features
-- Dual content: vocabulary words + irregular verbs
-- AI-powered hints via Perplexity API
-- Multiple learning modes and themes
-- Progress tracking and analytics
-- Fuzzy matching for answers
-- Local storage persistence
+- **Content Types**: 
+  - Vocabulary words practice
+  - Irregular verb conjugation (all tenses)
+- **AI Integration**: 
+  - Context-aware hints via Perplexity API
+  - Configurable hint settings
+  - Search-based example generation
+- **Customization**:
+  - Multiple built-in themes
+  - Custom theme creator with color picker
+  - Adjustable learning modes
+- **Learning Features**:
+  - Progress tracking and statistics dashboard
+  - Fuzzy matching for answer validation
+  - Verb mode selection (specific tenses)
+  - Content type switcher
+- **Data Management**:
+  - Local storage persistence
+  - CSV data import
+  - Session statistics

@@ -169,7 +169,6 @@ export const isWordKnown = (word: WordPair): boolean => {
 };
 
 export const applyKnownStatusToWords = (words: WordPair[]): WordPair[] => {
-  const knownWords = loadKnownWords();
   return words.map(word => ({
     ...word,
     // Keep CSV "true" values, or check localStorage for additional known words

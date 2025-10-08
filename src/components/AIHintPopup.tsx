@@ -14,8 +14,7 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
   word, 
   translation, 
   mode, 
-  isVisible,
-  onClose 
+  isVisible
 }) => {
   const [exampleSentence, setExampleSentence] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);

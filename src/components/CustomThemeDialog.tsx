@@ -38,66 +38,121 @@ export const CustomThemeDialog: React.FC<CustomThemeDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Customize Your Theme
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden animate-in fade-in duration-200">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6">
+          <h2 className="text-3xl font-bold text-white">
+            🎨 Customize Your Theme
           </h2>
+          <p className="text-purple-100 mt-1">Make it yours with colors and gradients</p>
         </div>
 
-        <div className="flex">
+        <div className="flex flex-col lg:flex-row">
           {/* Configuration Panel */}
-          <div className="flex-1 p-6 overflow-y-auto max-h-[70vh]">
-            <div className="space-y-6">
-              {/* Background */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                  Background
-                </h3>
+          <div className="flex-1 p-6 overflow-y-auto max-h-[calc(90vh-200px)] space-y-8">
+            
+            {/* Main Colors Section */}
+            <section>
+              <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+                <span className="mr-2">🌈</span> Main Colors
+              </h3>
+              <div className="space-y-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
                 <ColorPicker
-                  label="Page Background"
+                  label="Background"
                   value={tempTheme.background}
                   onChange={(value) => updateColor('background', value)}
                   supportsGradient={true}
                 />
+                <ColorPicker
+                  label="Card Background"
+                  value={tempTheme.cardBg}
+                  onChange={(value) => updateColor('cardBg', value)}
+                />
+                <ColorPicker
+                  label="Progress Bar"
+                  value={tempTheme.progressBar}
+                  onChange={(value) => updateColor('progressBar', value)}
+                  supportsGradient={true}
+                />
               </div>
+            </section>
 
-              {/* Text Colors */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                  Text Colors
-                </h3>
-                <div className="space-y-3">
-                  <ColorPicker
-                    label="Primary Text"
-                    value={tempTheme.textPrimary}
-                    onChange={(value) => updateColor('textPrimary', value)}
-                  />
-                  <ColorPicker
-                    label="Secondary Text"
-                    value={tempTheme.textSecondary}
-                    onChange={(value) => updateColor('textSecondary', value)}
-                  />
-                  <ColorPicker
-                    label="Muted Text"
-                    value={tempTheme.textMuted}
-                    onChange={(value) => updateColor('textMuted', value)}
-                  />
-                </div>
+            {/* Mode Switcher Gradients */}
+            <section>
+              <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+                <span className="mr-2">✨</span> Mode Switcher Gradients
+              </h3>
+              <div className="space-y-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                <ColorPicker
+                  label="Words/Verbs Switcher"
+                  value={tempTheme.contentTypeGradient || 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)'}
+                  onChange={(value) => updateColor('contentTypeGradient', value)}
+                  supportsGradient={true}
+                />
+                <ColorPicker
+                  label="Language Direction (NL↔EN)"
+                  value={tempTheme.languageGradient || 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'}
+                  onChange={(value) => updateColor('languageGradient', value)}
+                  supportsGradient={true}
+                />
+                <ColorPicker
+                  label="Verb Forms Mode"
+                  value={tempTheme.verbModeGradient || 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'}
+                  onChange={(value) => updateColor('verbModeGradient', value)}
+                  supportsGradient={true}
+                />
               </div>
+            </section>
 
-              {/* UI Elements */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                  UI Elements
-                </h3>
-                <div className="space-y-3">
-                  <ColorPicker
-                    label="Card Background"
-                    value={tempTheme.cardBg}
-                    onChange={(value) => updateColor('cardBg', value)}
-                  />
+            {/* Text Colors */}
+            <section>
+              <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+                <span className="mr-2">📝</span> Text Colors
+              </h3>
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                <ColorPicker
+                  label="Primary Text"
+                  value={tempTheme.textPrimary}
+                  onChange={(value) => updateColor('textPrimary', value)}
+                />
+                <ColorPicker
+                  label="Secondary Text"
+                  value={tempTheme.textSecondary}
+                  onChange={(value) => updateColor('textSecondary', value)}
+                />
+              </div>
+            </section>
+
+            {/* Feedback Colors */}
+            <section>
+              <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+                <span className="mr-2">✅</span> Feedback
+              </h3>
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                <ColorPicker
+                  label="Correct"
+                  value={tempTheme.correctFeedback}
+                  onChange={(value) => updateColor('correctFeedback', value)}
+                />
+                <ColorPicker
+                  label="Incorrect"
+                  value={tempTheme.incorrectFeedback}
+                  onChange={(value) => updateColor('incorrectFeedback', value)}
+                />
+              </div>
+            </section>
+
+            {/* Advanced Section - Collapsible */}
+            <details className="group">
+              <summary className="cursor-pointer text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                <span className="mr-2">⚙️</span> Advanced Settings
+                <svg className="ml-2 w-5 h-5 transform group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div className="space-y-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mt-2">
+                <div className="grid grid-cols-2 gap-4">
                   <ColorPicker
                     label="Input Background"
                     value={tempTheme.inputBg}
@@ -118,88 +173,10 @@ export const CustomThemeDialog: React.FC<CustomThemeDialogProps> = ({
                     value={tempTheme.buttonHover}
                     onChange={(value) => updateColor('buttonHover', value)}
                   />
-                </div>
-              </div>
-
-              {/* Mode Selectors */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                  Mode Selectors
-                </h3>
-                <div className="space-y-3">
-                  <ColorPicker
-                    label="Mode Toggle Background"
-                    value={tempTheme.modeToggleBg || tempTheme.buttonBg}
-                    onChange={(value) => updateColor('modeToggleBg', value)}
-                  />
-                  <ColorPicker
-                    label="Mode Toggle Active"
-                    value={tempTheme.modeToggleActive || tempTheme.buttonHover}
-                    onChange={(value) => updateColor('modeToggleActive', value)}
-                  />
-                  <ColorPicker
-                    label="Content Type Background"
-                    value={tempTheme.contentTypeBg || tempTheme.buttonBg}
-                    onChange={(value) => updateColor('contentTypeBg', value)}
-                  />
-                  <ColorPicker
-                    label="Content Type Active"
-                    value={tempTheme.contentTypeActive || tempTheme.buttonHover}
-                    onChange={(value) => updateColor('contentTypeActive', value)}
-                  />
-                  <ColorPicker
-                    label="Verb Mode Background"
-                    value={tempTheme.verbModeBg || tempTheme.buttonBg}
-                    onChange={(value) => updateColor('verbModeBg', value)}
-                  />
-                  <ColorPicker
-                    label="Verb Mode Active"
-                    value={tempTheme.verbModeActive || tempTheme.buttonHover}
-                    onChange={(value) => updateColor('verbModeActive', value)}
-                  />
-                </div>
-              </div>
-
-              {/* Feedback & Progress */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                  Feedback & Progress
-                </h3>
-                <div className="space-y-3">
-                  <ColorPicker
-                    label="Progress Bar"
-                    value={tempTheme.progressBar}
-                    onChange={(value) => updateColor('progressBar', value)}
-                    supportsGradient={true}
-                  />
-                  <ColorPicker
-                    label="Correct Feedback"
-                    value={tempTheme.correctFeedback}
-                    onChange={(value) => updateColor('correctFeedback', value)}
-                  />
-                  <ColorPicker
-                    label="Incorrect Feedback"
-                    value={tempTheme.incorrectFeedback}
-                    onChange={(value) => updateColor('incorrectFeedback', value)}
-                  />
-                </div>
-              </div>
-
-              {/* Hints */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                  Hints
-                </h3>
-                <div className="space-y-3">
                   <ColorPicker
                     label="Hint Background"
                     value={tempTheme.hintBg}
                     onChange={(value) => updateColor('hintBg', value)}
-                  />
-                  <ColorPicker
-                    label="Hint Border"
-                    value={tempTheme.hintBorder}
-                    onChange={(value) => updateColor('hintBorder', value)}
                   />
                   <ColorPicker
                     label="Hint Text"
@@ -208,168 +185,107 @@ export const CustomThemeDialog: React.FC<CustomThemeDialogProps> = ({
                   />
                 </div>
               </div>
-
-              {/* Stats */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                  Statistics
-                </h3>
-                <div className="space-y-3">
-                  <ColorPicker
-                    label="Stat Box Background"
-                    value={tempTheme.statBoxBg}
-                    onChange={(value) => updateColor('statBoxBg', value)}
-                  />
-                  <ColorPicker
-                    label="Stat Box Hover"
-                    value={tempTheme.statBoxHover}
-                    onChange={(value) => updateColor('statBoxHover', value)}
-                  />
-                </div>
-              </div>
-            </div>
+            </details>
           </div>
 
-          {/* Preview Panel */}
+          {/* Live Preview Panel */}
           <div 
-            className="w-96 p-6 border-l border-gray-200 dark:border-gray-700"
+            className="lg:w-96 p-6 border-l border-gray-200 dark:border-gray-700"
             style={{ background: tempTheme.background }}
           >
-            <h3 className="text-lg font-semibold mb-4" style={{ color: tempTheme.textPrimary }}>
-              Live Preview
-            </h3>
-            
-            {/* Preview Card */}
-            <div 
-              className="p-4 rounded-lg mb-4" 
-              style={{ backgroundColor: tempTheme.cardBg }}
-            >
-              <p style={{ color: tempTheme.textPrimary }}>Primary Text</p>
-              <p style={{ color: tempTheme.textSecondary }}>Secondary Text</p>
-              <p style={{ color: tempTheme.textMuted }}>Muted Text</p>
-            </div>
-
-            {/* Preview Input */}
-            <input
-              type="text"
-              placeholder="Sample input"
-              className="w-full px-3 py-2 rounded mb-4"
-              style={{
-                backgroundColor: tempTheme.inputBg,
-                borderColor: tempTheme.inputBorder,
-                border: '1px solid',
-                color: tempTheme.textPrimary
-              }}
-            />
-
-            {/* Preview Buttons */}
-            <div className="flex space-x-2 mb-4">
-              <button
-                className="px-4 py-2 rounded transition-colors"
-                style={{
-                  backgroundColor: tempTheme.buttonBg,
-                  color: tempTheme.textPrimary
-                }}
-              >
-                Normal
-              </button>
-              <button
-                className="px-4 py-2 rounded"
-                style={{
-                  backgroundColor: tempTheme.buttonHover,
-                  color: tempTheme.textPrimary
-                }}
-              >
-                Hover
-              </button>
-            </div>
-
-            {/* Preview Mode Toggles */}
-            <div className="flex space-x-2 mb-4">
+            <div className="sticky top-0">
+              <h3 className="text-xl font-bold mb-4 flex items-center" style={{ color: tempTheme.textPrimary }}>
+                <span className="mr-2">👀</span> Live Preview
+              </h3>
+              
+              {/* Preview Card */}
               <div 
-                className="px-3 py-1 rounded text-sm"
-                style={{
-                  backgroundColor: tempTheme.modeToggleBg || tempTheme.buttonBg,
-                  color: tempTheme.textSecondary
-                }}
+                className="p-4 rounded-xl mb-4 shadow-lg" 
+                style={{ backgroundColor: tempTheme.cardBg }}
               >
-                Inactive
+                <p className="font-semibold mb-2" style={{ color: tempTheme.textPrimary }}>Sample Card</p>
+                <p className="text-sm" style={{ color: tempTheme.textSecondary }}>This is how your content looks</p>
               </div>
-              <div 
-                className="px-3 py-1 rounded text-sm"
-                style={{
-                  backgroundColor: tempTheme.modeToggleActive || tempTheme.buttonHover,
-                  color: tempTheme.textPrimary
-                }}
-              >
-                Active
-              </div>
-            </div>
 
-            {/* Preview Progress */}
-            <div className="mb-4">
-              <div 
-                className="h-2 rounded-full"
-                style={{ background: tempTheme.progressBar }}
-              />
-            </div>
-
-            {/* Preview Feedback */}
-            <div className="flex space-x-2 mb-4">
-              <div 
-                className="px-3 py-1 rounded text-sm"
-                style={{
-                  backgroundColor: tempTheme.correctFeedback,
-                  color: '#ffffff'
-                }}
-              >
-                Correct
+              {/* Preview Mode Switchers */}
+              <div className="space-y-3 mb-4">
+                <div className="flex space-x-2">
+                  <div 
+                    className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-white text-center shadow-lg"
+                    style={{ background: tempTheme.contentTypeGradient }}
+                  >
+                    Words
+                  </div>
+                  <div 
+                    className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-white text-center shadow-lg opacity-50"
+                    style={{ background: tempTheme.contentTypeGradient }}
+                  >
+                    Verbs
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <div 
+                    className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-white text-center shadow-lg"
+                    style={{ background: tempTheme.languageGradient }}
+                  >
+                    🇳🇱 → 🇬🇧
+                  </div>
+                  <div 
+                    className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-white text-center shadow-lg opacity-50"
+                    style={{ background: tempTheme.languageGradient }}
+                  >
+                    🇬🇧 → 🇳🇱
+                  </div>
+                </div>
               </div>
-              <div 
-                className="px-3 py-1 rounded text-sm"
-                style={{
-                  backgroundColor: tempTheme.incorrectFeedback,
-                  color: '#ffffff'
-                }}
-              >
-                Incorrect
-              </div>
-            </div>
 
-            {/* Preview Hint */}
-            <div 
-              className="p-3 rounded border"
-              style={{
-                backgroundColor: tempTheme.hintBg,
-                borderColor: tempTheme.hintBorder,
-                color: tempTheme.hintText
-              }}
-            >
-              This is a hint preview
+              {/* Preview Progress */}
+              <div className="mb-4">
+                <div 
+                  className="h-3 rounded-full shadow-inner"
+                  style={{ background: tempTheme.progressBar, width: '70%' }}
+                />
+              </div>
+
+              {/* Preview Feedback */}
+              <div className="flex space-x-2">
+                <div 
+                  className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-white text-center shadow-lg"
+                  style={{ backgroundColor: tempTheme.correctFeedback }}
+                >
+                  ✓ Correct
+                </div>
+                <div 
+                  className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-white text-center shadow-lg"
+                  style={{ backgroundColor: tempTheme.incorrectFeedback }}
+                >
+                  ✗ Wrong
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-between">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
           <button
             onClick={handleReset}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+            className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
           >
-            Reset to Default
+            🔄 Reset to Default
           </button>
-          <div className="flex space-x-2">
+          <div className="flex space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+              className="px-5 py-2.5 text-sm font-medium bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-5 py-2.5 text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
             >
-              Save Theme
+              💾 Save Theme
             </button>
           </div>
         </div>

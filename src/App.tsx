@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { LearningMode, GameState, UserProgress, SessionStats, ContentType, VerbMode } from './types';
+import type { LearningMode, GameState, UserProgress, SessionStats, ContentType, VerbMode, WordPair } from './types';
 import { loadCSVData, loadVerbData } from './utils/csvParser';
 import { fuzzyMatch } from './utils/fuzzyMatch';
 import { WordManager } from './utils/wordManager';

@@ -19,13 +19,10 @@ export interface ThemeColors {
   hintText: string;
   statBoxBg: string;
   statBoxHover: string;
-  // Mode selector colors
-  modeToggleBg?: string;
-  modeToggleActive?: string;
-  contentTypeBg?: string;
-  contentTypeActive?: string;
-  verbModeBg?: string;
-  verbModeActive?: string;
+  // Mode selector gradients
+  contentTypeGradient?: string;  // Words/Verbs switcher gradient
+  languageGradient?: string;     // Language direction (NL-EN/EN-NL) gradient
+  verbModeGradient?: string;     // Verb forms (Random/Infinitive/etc) gradient
 }
 
 export interface CustomThemeColors extends ThemeColors {
@@ -52,12 +49,9 @@ export const DEFAULT_CUSTOM_THEME: CustomThemeColors = {
   hintText: '#ffffff',
   statBoxBg: 'rgba(255, 255, 255, 0.2)',
   statBoxHover: 'rgba(255, 255, 255, 0.3)',
-  modeToggleBg: 'rgba(255, 255, 255, 0.1)',
-  modeToggleActive: 'rgba(255, 255, 255, 0.3)',
-  contentTypeBg: 'rgba(255, 255, 255, 0.1)',
-  contentTypeActive: 'rgba(255, 255, 255, 0.3)',
-  verbModeBg: 'rgba(255, 255, 255, 0.1)',
-  verbModeActive: 'rgba(255, 255, 255, 0.3)'
+  contentTypeGradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
+  languageGradient: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+  verbModeGradient: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'
 };
 
 export const themes: Record<Exclude<Theme, 'custom'>, ThemeColors> = {
@@ -79,7 +73,10 @@ export const themes: Record<Exclude<Theme, 'custom'>, ThemeColors> = {
     hintBorder: 'rgba(255, 255, 255, 0.25)',
     hintText: '#ffffff',
     statBoxBg: 'rgba(255, 255, 255, 0.2)',
-    statBoxHover: 'rgba(255, 255, 255, 0.3)'
+    statBoxHover: 'rgba(255, 255, 255, 0.3)',
+    contentTypeGradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
+    languageGradient: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+    verbModeGradient: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'
   },
   duo: {
     name: 'Duo',
@@ -99,7 +96,10 @@ export const themes: Record<Exclude<Theme, 'custom'>, ThemeColors> = {
     hintBorder: '#81c784',
     hintText: '#2d3748',
     statBoxBg: 'rgba(129, 199, 132, 0.2)',
-    statBoxHover: 'rgba(129, 199, 132, 0.3)'
+    statBoxHover: 'rgba(129, 199, 132, 0.3)',
+    contentTypeGradient: 'linear-gradient(135deg, #81c784 0%, #aed581 100%)',
+    languageGradient: 'linear-gradient(135deg, #64b5f6 0%, #7986cb 100%)',
+    verbModeGradient: 'linear-gradient(135deg, #ba68c8 0%, #f06292 100%)'
   },
   oled: {
     name: 'Dark',
@@ -130,6 +130,9 @@ export const themes: Record<Exclude<Theme, 'custom'>, ThemeColors> = {
     hintBorder: '#555555',
     hintText: 'rgba(255, 255, 255, 0.9)',
     statBoxBg: 'rgba(45, 55, 72, 0.4)',
-    statBoxHover: 'rgba(45, 55, 72, 0.6)'
+    statBoxHover: 'rgba(45, 55, 72, 0.6)',
+    contentTypeGradient: 'linear-gradient(135deg, #4ade80 0%, #22d3ee 100%)',
+    languageGradient: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)',
+    verbModeGradient: 'linear-gradient(135deg, #c084fc 0%, #f472b6 100%)'
   }
 };

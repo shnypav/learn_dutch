@@ -23,8 +23,8 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ sessionStats, cla
     };
 
     return (
-      <div className={`bg-gray-900 bg-opacity-80 rounded-xl p-4 border border-gray-600 shadow-lg ${className}`}>
-        <div className="flex justify-between items-center mb-4">
+      <div className={`bg-gray-900 bg-opacity-80 rounded-xl p-2 border border-gray-600 shadow-lg ${className}`}>
+        <div className="flex justify-between items-center mb-2">
           <h3 className="text-white font-semibold text-sm uppercase tracking-wide">
             Session Progress
           </h3>
@@ -33,7 +33,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ sessionStats, cla
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-center">
+        <div className="grid grid-cols-2 gap-2 text-center">
           {/* Score */}
           <div className="bg-gray-800 bg-opacity-60 rounded-lg p-3 border border-gray-600">
             <div className="text-2xl font-bold text-white mb-4">
@@ -56,7 +56,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ sessionStats, cla
         </div>
 
         {/* Streak */}
-        <div className="mt-4 text-center">
+        <div className="mt-2 text-center">
           <div className="bg-gray-800 bg-opacity-60 rounded-lg p-3 border border-gray-600">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <span className="text-xl">{getStreakIcon()}</span>
@@ -70,7 +70,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ sessionStats, cla
 
         {/* Progress Bar */}
         {total > 0 && (
-          <div className="mt-4">
+          <div className="mt-2">
             <div className="flex justify-between text-xs text-gray-300 mb-4">
               <span>Progress</span>
               <span>{total} answers</span>

@@ -20,7 +20,7 @@ const VerbModeSelector: React.FC<VerbModeSelectorProps> = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      <div className="card-bg rounded-xl p-2 grid grid-cols-2 gap-4 w-full">
+      <div className="card-bg rounded-xl p-2 grid grid-cols-2 gap-2 w-full">
         {modes.map((mode) => (
           <button
             key={mode.value}

@@ -35,6 +35,10 @@ const normalizeString = (str: string): string => {
 
 // Check if two strings are similar enough
 export const fuzzyMatch = (userInput: string, correctAnswer: string, threshold: number = 2): boolean => {
+  if (!userInput || !correctAnswer) {
+    return false;
+  }
+  
   const normalizedInput = normalizeString(userInput);
   const normalizedAnswer = normalizeString(correctAnswer);
   
