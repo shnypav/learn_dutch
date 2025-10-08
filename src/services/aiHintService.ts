@@ -30,6 +30,11 @@ interface PerplexityResponse {
   }>;
 }
 
+export interface AIHintResult {
+  examples: string[];
+  explanation: string;
+}
+
 // Curated domain lists for quality language learning content
 // Note: search_domain_filter not yet supported by Perplexity API (documented but unavailable)
 // Keeping these for future use when the feature becomes available
@@ -59,6 +64,7 @@ const ENGLISH_LEARNING_DOMAINS = [
 class AIHintService {
   private apiKey: string | null = null;
   private cache = new Map<string, string>();
+  private explanationCache = new Map<string, string>();
   // Use proxy in development, direct URLs in production (requires backend)
   private readonly searchUrl = import.meta.env.DEV 
     ? '/api/perplexity/search' 
@@ -215,7 +221,7 @@ class AIHintService {
   private extractSentencesFromResults(
     results: PerplexitySearchResult[],
     word: string,
-    maxSentences: number = 3
+    maxSentences: number = 5
   ): string[] {
     const examples: string[] = [];
     
@@ -261,7 +267,7 @@ class AIHintService {
           return !isNoise;
         });
 
-      examples.push(...snippetSentences.slice(0, 2)); // Max 2 per result
+      examples.push(...snippetSentences.slice(0, 3)); // Max 3 per result
       
       if (examples.length >= maxSentences) break;
     }
@@ -298,7 +304,7 @@ class AIHintService {
           },
           body: JSON.stringify({
             query: searchQuery,
-            max_results: 5,
+            max_results: 8,
             max_tokens_per_page: 512,
             // Note: search_domain_filter and search_recency_filter documented but not yet available
           }),
@@ -325,7 +331,7 @@ class AIHintService {
             },
             body: JSON.stringify({
               query: `${word} simple ${targetLang} sentence A2 beginner example`,
-              max_results: 5,
+              max_results: 8,
               max_tokens_per_page: 512,
             }),
           });
@@ -352,9 +358,9 @@ class AIHintService {
   }
 
   /**
-   * Fallback to chat completions for generated examples
+   * Generate explanation using chat completions
    */
-  private async generateWithChat(
+  private async generateExplanation(
     word: string,
     translation: string,
     targetLang: 'dutch' | 'english'
@@ -364,20 +370,91 @@ class AIHintService {
     }
 
     const prompt = targetLang === 'dutch' 
-      ? `Create a very simple Dutch sentence for A2 level learners using the word "${word}" (which means "${translation}" in English). 
+      ? `Provide a simple, clear explanation in Dutch for the word "${word}" (which means "${translation}" in English).
+         Requirements:
+         - Write the explanation in Dutch
+         - Use simple A2 level vocabulary
+         - Maximum 2-3 short sentences
+         - Explain what the word means and how it's typically used
+         - Do not include examples, just the definition/explanation
+         Return ONLY the explanation, nothing else.`
+      : `Provide a simple, clear explanation in English for the word "${word}" (which is "${translation}" in Dutch).
+         Requirements:
+         - Write the explanation in English
+         - Use simple A2 level vocabulary
+         - Maximum 2-3 short sentences
+         - Explain what the word means and how it's typically used
+         - Do not include examples, just the definition/explanation
+         Return ONLY the explanation, nothing else.`;
+
+    console.log('AI Hint: Generating explanation...');
+
+    return await this.withRetry(async () => {
+      const response = await fetch(this.chatUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'sonar',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 150,
+          temperature: 0.3,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Chat API Error Response:', errorText);
+        throw new Error(`Chat API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data: PerplexityResponse = await response.json();
+      
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error('No response from AI service');
+      }
+
+      return this.cleanMarkdownFormatting(data.choices[0].message.content);
+    });
+  }
+
+  /**
+   * Fallback to chat completions for generated examples
+   */
+  private async generateWithChat(
+    word: string,
+    translation: string,
+    targetLang: 'dutch' | 'english',
+    count: number = 1
+  ): Promise<string[]> {
+    if (!this.apiKey) {
+      throw new Error('API key not configured');
+    }
+
+    const prompt = targetLang === 'dutch' 
+      ? `Create ${count} very simple Dutch sentences for A2 level learners using the word "${word}" (which means "${translation}" in English). 
          Requirements:
          - Use simple, common vocabulary only
-         - Maximum 8-10 words
+         - Maximum 8-10 words per sentence
          - Present tense when possible
          - Everyday context (not technical or complex topics)
-         Return ONLY the sentence, nothing else.`
-      : `Create a very simple English sentence for A2 level learners using the word "${word}" (which is "${translation}" in Dutch).
+         - Each sentence should be different
+         Return ONLY the ${count} sentences, one per line, without numbering or labels.`
+      : `Create ${count} very simple English sentences for A2 level learners using the word "${word}" (which is "${translation}" in Dutch).
          Requirements:
          - Use simple, common vocabulary only
-         - Maximum 8-10 words
+         - Maximum 8-10 words per sentence
          - Present tense when possible
          - Everyday context (not technical or complex topics)
-         Return ONLY the sentence, nothing else.`;
+         - Each sentence should be different
+         Return ONLY the ${count} sentences, one per line, without numbering or labels.`;
 
     console.log('AI Hint: Generating with chat completions...');
 
@@ -413,19 +490,180 @@ class AIHintService {
         throw new Error('No response from AI service');
       }
 
-      return this.cleanMarkdownFormatting(data.choices[0].message.content);
+      const content = data.choices[0].message.content;
+      const sentences = content
+        .split('\n')
+        .map(s => this.cleanMarkdownFormatting(s.trim()))
+        .filter(s => s.length > 0)
+        .slice(0, count);
+      
+      return sentences.length > 0 ? sentences : [this.cleanMarkdownFormatting(content)];
     });
   }
 
   /**
-   * Main method: Generate example sentence with hybrid approach
+   * Search for dictionary explanation using Perplexity Search
    */
-  async generateExampleSentence(
+  private async searchForExplanation(
+    word: string,
+    targetLang: 'dutch' | 'english'
+  ): Promise<string | null> {
+    if (!this.apiKey) {
+      throw new Error('API key not configured');
+    }
+
+    const searchQuery = targetLang === 'dutch' 
+      ? `"${word}" betekenis definitie Nederlands woordenboek A2`
+      : `"${word}" meaning definition English dictionary A2 level`;
+
+    console.log('AI Hint: Searching for explanation:', searchQuery);
+
+    try {
+      const response = await fetch(this.searchUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+          query: searchQuery,
+          max_results: 3,
+          max_tokens_per_page: 256,
+        }),
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data: PerplexitySearchResponse = await response.json();
+      
+      if (!data.results || data.results.length === 0) {
+        return null;
+      }
+
+      // Extract explanation from search results
+      for (const result of data.results) {
+        if (!result.snippet) continue;
+        
+        const cleaned = this.cleanMarkdownFormatting(result.snippet);
+        // Look for definition-like content
+        if (cleaned.length > 30 && cleaned.length < 300) {
+          // Filter out navigation/UI text
+          if (!cleaned.includes('cookie') && 
+              !cleaned.includes('privacy') && 
+              !cleaned.includes('subscribe') &&
+              !cleaned.includes('©')) {
+            return cleaned;
+          }
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Search for explanation error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Main method: Generate examples and explanation with hybrid approach
+   */
+  async generateHint(
     word: string, 
     translation: string,
     targetLang: 'dutch' | 'english'
-  ): Promise<string> {
-    console.log('AI Hint: Generating example for word:', word, 'translation:', translation);
+  ): Promise<AIHintResult> {
+    console.log(`AI Hint: Generating hint for word:`, word, 'translation:', translation);
+    
+    if (!this.apiKey) {
+      console.error('AI Hint: No API key configured');
+      throw new Error('API key not configured');
+    }
+
+    const cacheKey = this.getCacheKey(word, targetLang);
+    const explanationKey = `${cacheKey}_explanation`;
+    
+    // Check cache for both examples and explanation
+    let examples: string[] = [];
+    let explanation: string = '';
+    
+    // Try to get cached examples
+    if (this.cache.has(cacheKey)) {
+      try {
+        const cached = this.cache.get(cacheKey)!;
+        const parsedCache = JSON.parse(cached);
+        if (Array.isArray(parsedCache) && parsedCache.length > 0) {
+          examples = parsedCache.slice(0, 3);
+          console.log('AI Hint: Found cached examples');
+        }
+      } catch {
+        this.cache.delete(cacheKey);
+      }
+    }
+    
+    // Try to get cached explanation
+    if (this.explanationCache.has(explanationKey)) {
+      explanation = this.explanationCache.get(explanationKey)!;
+      console.log('AI Hint: Found cached explanation');
+    }
+    
+    // If we have both cached, return immediately
+    if (examples.length > 0 && explanation) {
+      return { examples, explanation };
+    }
+
+    try {
+      // Generate examples if not cached
+      if (examples.length === 0) {
+        examples = await this.generateExampleSentences(word, translation, targetLang, 3);
+      }
+      
+      // Generate explanation if not cached
+      if (!explanation) {
+        // First try to search for a real explanation
+        const searchedExplanation = await this.searchForExplanation(word, targetLang);
+        
+        if (searchedExplanation) {
+          explanation = searchedExplanation;
+          console.log('AI Hint: ✅ Found explanation from search');
+        } else {
+          // Fallback to generating explanation
+          explanation = await this.generateExplanation(word, translation, targetLang);
+          console.log('AI Hint: 🤖 Generated explanation with AI');
+        }
+        
+        // Cache the explanation
+        this.explanationCache.set(explanationKey, explanation);
+      }
+      
+      return { examples, explanation };
+      
+    } catch (error) {
+      console.error('AI hint generation error:', error);
+      
+      // Final fallback
+      const errorMsg = targetLang === 'dutch' 
+        ? `Helaas, geen informatie beschikbaar.`
+        : `Sorry, no information available.`;
+      
+      return {
+        examples: [errorMsg],
+        explanation: errorMsg
+      };
+    }
+  }
+
+  /**
+   * Main method: Generate example sentences with hybrid approach
+   */
+  async generateExampleSentences(
+    word: string, 
+    translation: string,
+    targetLang: 'dutch' | 'english',
+    count: number = 3
+  ): Promise<string[]> {
+    console.log(`AI Hint: Generating ${count} examples for word:`, word, 'translation:', translation);
     
     if (!this.apiKey) {
       console.error('AI Hint: No API key configured');
@@ -434,10 +672,19 @@ class AIHintService {
 
     const cacheKey = this.getCacheKey(word, targetLang);
     
-    // Check cache first
+    // Check cache first (cache now stores JSON array of examples)
     if (this.cache.has(cacheKey)) {
       console.log('AI Hint: Found in cache');
-      return this.cache.get(cacheKey)!;
+      const cached = this.cache.get(cacheKey)!;
+      try {
+        const parsedCache = JSON.parse(cached);
+        if (Array.isArray(parsedCache) && parsedCache.length >= count) {
+          return parsedCache.slice(0, count);
+        }
+      } catch {
+        // Old cache format, clear it
+        this.cache.delete(cacheKey);
+      }
     }
 
     try {
@@ -445,44 +692,69 @@ class AIHintService {
       const searchExamples = await this.searchForExamples(word, targetLang);
       
       if (searchExamples.length > 0) {
-        // Extract pure example from potentially formatted response
-        const rawExample = searchExamples[0];
-        const cleanedExample = this.extractPureExample(rawExample);
-        console.log('AI Hint: ✅ Using search result');
-        console.log('  Raw:', rawExample);
-        console.log('  Cleaned:', cleanedExample);
-        this.cache.set(cacheKey, cleanedExample);
-        return cleanedExample;
+        // Extract and clean multiple examples
+        const cleanedExamples = searchExamples
+          .slice(0, count)
+          .map(raw => {
+            const cleaned = this.extractPureExample(raw);
+            console.log('  Raw:', raw);
+            console.log('  Cleaned:', cleaned);
+            return cleaned;
+          });
+        
+        console.log(`AI Hint: ✅ Using ${cleanedExamples.length} search results`);
+        
+        // If we have fewer than requested, generate the rest
+        if (cleanedExamples.length < count) {
+          console.log(`AI Hint: Found only ${cleanedExamples.length}, generating ${count - cleanedExamples.length} more...`);
+          const generated = await this.generateWithChat(word, translation, targetLang, count - cleanedExamples.length);
+          cleanedExamples.push(...generated);
+        }
+        
+        this.cache.set(cacheKey, JSON.stringify(cleanedExamples));
+        return cleanedExamples;
       }
 
       console.log('AI Hint: ❌ No A2-level examples found in search results (all too complex)');
-      console.log('AI Hint: 🤖 Falling back to AI generation...');
+      console.log(`AI Hint: 🤖 Falling back to AI generation for all ${count} examples...`);
       
       // Strategy 2: Generate with chat completions (fallback)
-      const generatedSentence = await this.generateWithChat(word, translation, targetLang);
-      const cleanedSentence = this.extractPureExample(generatedSentence);
-      console.log('AI Hint: Raw generation:', generatedSentence);
-      console.log('AI Hint: Cleaned to:', cleanedSentence);
+      const generatedSentences = await this.generateWithChat(word, translation, targetLang, count);
+      console.log(`AI Hint: Generated ${generatedSentences.length} sentences`);
+      generatedSentences.forEach((s, i) => console.log(`  ${i + 1}:`, s));
       
-      this.cache.set(cacheKey, cleanedSentence);
-      return cleanedSentence;
+      this.cache.set(cacheKey, JSON.stringify(generatedSentences));
+      return generatedSentences;
       
     } catch (error) {
       console.error('AI service error:', error);
       
       // Final fallback: friendly error message
-      return targetLang === 'dutch' 
-        ? `Helaas, een voorbeeld zin kan niet worden gegenereerd.`
-        : `Sorry, unable to generate an example sentence.`;
+      const errorMsg = targetLang === 'dutch' 
+        ? `Helaas, voorbeeldzinnen kunnen niet worden gegenereerd.`
+        : `Sorry, unable to generate example sentences.`;
+      return [errorMsg];
     }
   }
 
   clearCache(): void {
     this.cache.clear();
+    this.explanationCache.clear();
   }
 
   getCacheSize(): number {
     return this.cache.size;
+  }
+  /**
+   * Legacy method for backward compatibility - returns single sentence
+   */
+  async generateExampleSentence(
+    word: string, 
+    translation: string,
+    targetLang: 'dutch' | 'english'
+  ): Promise<string> {
+    const sentences = await this.generateExampleSentences(word, translation, targetLang, 1);
+    return sentences[0] || '';
   }
 }
 

@@ -20,7 +20,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
   const [showHintPopup, setShowHintPopup] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const { isConfigured, setShowConfigDialog } = useAIHint();
+  const { isConfigured, setShowConfigDialog, preloadHint } = useAIHint();
 
   const adjustFontSize = () => {
     if (!textRef.current || !containerRef.current) return;
@@ -63,8 +63,15 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
     if (word) {
       // Small delay to ensure DOM is ready
       setTimeout(() => adjustFontSize(), 10);
+      
+      // Preload AI hint when new word is shown (not during feedback)
+      if (feedback === null && isConfigured) {
+        const sourceWord = mode === 'nl-en' ? word.dutch : word.english;
+        const translationWord = mode === 'nl-en' ? word.english : word.dutch;
+        preloadHint(sourceWord, translationWord, mode);
+      }
     }
-  }, [word, mode, feedback, correctAnswer]);
+  }, [word, mode, feedback, correctAnswer, isConfigured, preloadHint]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

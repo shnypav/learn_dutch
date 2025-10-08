@@ -1,5 +1,7 @@
 import type { VerbPair, VerbForm, FeedbackType } from '../types';
 import { useRef, useEffect, useState } from 'react';
+import { useAIHint } from '../contexts/AIHintContext';
+import AIHintPopup from './AIHintPopup';
 
 interface VerbCardProps {
   verb: VerbPair | null;
@@ -19,6 +21,12 @@ const VerbCard: React.FC<VerbCardProps> = ({
   const textRef = useRef<HTMLHeadingElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState('text-4xl md:text-5xl');
+  
+  // AI hint popup state
+  const [showHintPopup, setShowHintPopup] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const { isConfigured, setShowConfigDialog, preloadHint } = useAIHint();
 
   const adjustFontSize = () => {
     if (!textRef.current || !containerRef.current) return;
@@ -54,8 +62,24 @@ const VerbCard: React.FC<VerbCardProps> = ({
   useEffect(() => {
     if (verb) {
       setTimeout(() => adjustFontSize(), 10);
+      
+      // Preload AI hint when new verb is shown (not during feedback)
+      if (feedback === null && isConfigured && verbForm) {
+        // Get the conjugated form as the translation
+        const conjugatedForm = verb[verbForm] || '';
+        preloadHint(verb.english_infinitive, conjugatedForm, 'en-nl');
+      }
     }
-  }, [verb, verbForm, feedback, correctAnswer]);
+  }, [verb, verbForm, feedback, correctAnswer, isConfigured, preloadHint]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+      }
+    };
+  }, [hoverTimeout]);
 
   if (!verb || !verbForm) {
     return (
@@ -88,6 +112,55 @@ const VerbCard: React.FC<VerbCardProps> = ({
     }
   };
 
+  const handleWordHover = (e: React.MouseEvent) => {
+    if (!verb || feedback !== null || !verbForm) return; // Don't show during feedback
+    
+    if (!isConfigured) {
+      setShowConfigDialog(true);
+      return;
+    }
+
+    // Track mouse position for tooltip placement
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+
+    // Clear any existing timeout
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+    }
+
+    // Small delay to prevent flickering
+    const timeout = setTimeout(() => {
+      setShowHintPopup(true);
+    }, 500); // 500ms delay
+    
+    setHoverTimeout(timeout);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (showHintPopup) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setMousePosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
+  };
+
+  const handleWordLeave = () => {
+    // Clear timeout if user leaves before delay completes
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    
+    // Hide immediately when leaving
+    setShowHintPopup(false);
+  };
+
   return (
     <div
       ref={containerRef}
@@ -99,13 +172,39 @@ const VerbCard: React.FC<VerbCardProps> = ({
         </span>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 relative">
         <h2
           ref={textRef}
-          className={`${fontSize} font-bold text-primary-light mb-4 transition-all duration-200`}
+          className={`${fontSize} font-bold text-primary-light mb-4 transition-all duration-200 cursor-pointer hover:text-blue-300 relative`}
+          onMouseEnter={handleWordHover}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleWordLeave}
         >
           {displayWord}
+          {!isConfigured && (
+            <span className="absolute -top-2 -right-2 w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
+          )}
         </h2>
+        
+        {/* AI Hint Tooltip - positioned above mouse cursor */}
+        {showHintPopup && verb && verbForm && (
+          <div 
+            className="absolute z-50 pointer-events-none"
+            style={{
+              left: `${mousePosition.x}px`,
+              top: `${mousePosition.y - 40}px`,
+              transform: 'translate(-50%, -100%)'
+            }}
+          >
+            <AIHintPopup
+              word={verb.english_infinitive}
+              translation={verb[verbForm] || ''}
+              mode="en-nl"
+              isVisible={showHintPopup}
+              onClose={() => setShowHintPopup(false)}
+            />
+          </div>
+        )}
       </div>
 
 

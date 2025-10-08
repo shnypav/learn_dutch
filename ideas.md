@@ -1,4 +1,4 @@
 ## ideas:
 
-- [ ] add color theme configurator with the preview window
+- [x] add color theme configurator with the preview window
 

@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { aiHintService } from '../services/aiHintService';
+import { useState, useEffect } from 'react';
+import type { AIHintResult } from '../services/aiHintService';
 import type { LearningMode } from '../types';
+import { useAIHint } from '../contexts/AIHintContext';
 
 interface AIHintPopupProps {
   word: string;
@@ -16,10 +17,9 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
   mode, 
   isVisible
 }) => {
-  const [exampleSentence, setExampleSentence] = useState<string>('');
+  const { getCachedHint, isHintLoading } = useAIHint();
+  const [hintData, setHintData] = useState<AIHintResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const requestInProgress = useRef(false);
 
   const cleanMarkdown = (text: string): string => {
     return text
@@ -30,38 +30,34 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
   };
 
   useEffect(() => {
-    if (isVisible && word && translation && !exampleSentence && !isLoading && !error && !requestInProgress.current) {
-      generateHint();
-    } 
-    // Don't reset state when hiding - keep the cached result for next time
-  }, [isVisible, word, translation, mode, exampleSentence, isLoading, error]);
-
-  const generateHint = async () => {
-    if (requestInProgress.current) {
-      return; // Already generating, don't start another request
+    if (isVisible && word && translation) {
+      // Check if hint is already cached
+      const cached = getCachedHint(word, translation, mode);
+      if (cached) {
+        setHintData(cached);
+        setIsLoading(false);
+      } else {
+        // Check if it's currently loading
+        const loading = isHintLoading(word, translation, mode);
+        setIsLoading(loading);
+        
+        // If loading, poll for the result
+        if (loading) {
+          const checkInterval = setInterval(() => {
+            const result = getCachedHint(word, translation, mode);
+            if (result) {
+              setHintData(result);
+              setIsLoading(false);
+              clearInterval(checkInterval);
+            }
+          }, 500); // Check every 500ms
+          
+          // Cleanup interval on unmount or when dependencies change
+          return () => clearInterval(checkInterval);
+        }
+      }
     }
-    
-    requestInProgress.current = true;
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Determine which language to generate the sentence in
-      const targetLang = mode === 'nl-en' ? 'dutch' : 'english';
-      const sentence = await aiHintService.generateExampleSentence(
-        word, 
-        translation, 
-        targetLang
-      );
-      setExampleSentence(sentence);
-    } catch (err) {
-      setError('Failed to generate example sentence');
-      console.error('Hint generation error:', err);
-    } finally {
-      setIsLoading(false);
-      requestInProgress.current = false;
-    }
-  };
+  }, [isVisible, word, translation, mode, getCachedHint, isHintLoading]);
 
   if (!isVisible) {
     return null;
@@ -70,30 +66,48 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
   // Simple tooltip - just show the sentence
   if (isLoading) {
     return (
-      <div className="bg-gray-800 bg-opacity-90 text-white text-sm px-4 py-2 rounded-md shadow-lg min-w-80 max-w-md animate-fade-in">
+      <div className="bg-gray-800/70 text-white text-sm text-left px-4 py-2 rounded-md shadow-lg min-w-80 max-w-md animate-fade-in backdrop-blur-md">
         <div className="flex items-center space-x-2">
           <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-300 border-t-transparent"></div>
-          <span>Loading example...</span>
+          <span>Loading examples...</span>
         </div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-gray-800 bg-opacity-90 text-red-300 text-sm px-4 py-2 rounded-md shadow-lg min-w-80 max-w-md animate-fade-in">
-        Failed to load example
-      </div>
-    );
-  }
-
-  if (!exampleSentence) {
+  if (!hintData && !isLoading) {
     return null;
   }
 
+  const targetLang = mode === 'nl-en' ? 'dutch' : 'english';
+  const examplesTitle = targetLang === 'dutch' ? 'Voorbeelden:' : 'Examples:';
+  const explanationTitle = targetLang === 'dutch' ? 'Uitleg:' : 'Explanation:';
+
   return (
-    <div className="bg-gray-800 bg-opacity-90 text-white text-sm px-4 py-2 rounded-md shadow-lg min-w-80 max-w-md animate-fade-in">
-      {cleanMarkdown(exampleSentence)}
+    <div className="bg-gray-800/70 text-white text-sm text-left px-4 py-3 rounded-md shadow-lg min-w-80 max-w-lg animate-fade-in backdrop-blur-md">
+      <div className="space-y-3">
+        {/* Explanation Section */}
+        <div>
+          <div className="text-blue-400 font-semibold mb-1">{explanationTitle}</div>
+          <div className="text-gray-100">{cleanMarkdown(hintData.explanation)}</div>
+        </div>
+        
+        {/* Divider */}
+        <div className="border-t border-gray-600"></div>
+        
+        {/* Examples Section */}
+        <div>
+          <div className="text-blue-400 font-semibold mb-1">{examplesTitle}</div>
+          <div className="space-y-1">
+            {hintData.examples.map((sentence, index) => (
+              <div key={index} className="flex items-start space-x-2 text-left">
+                <span className="text-gray-400 mt-0.5">{index + 1}.</span>
+                <span className="flex-1 text-gray-100">{cleanMarkdown(sentence)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
