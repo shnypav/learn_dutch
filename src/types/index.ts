@@ -44,6 +44,8 @@ export type LearningMode = 'nl-en' | 'en-nl';
 
 export type ContentType = 'words' | 'verbs';
 
+export type PracticeMode = 'type' | 'multiple-choice';
+
 export type FeedbackType = 'correct' | 'incorrect' | null;
 
 export interface GameState {
@@ -52,6 +54,7 @@ export interface GameState {
   mode: LearningMode;
   contentType: ContentType;
   verbMode: VerbMode;
+  practiceMode: PracticeMode;
   currentVerbForm: VerbForm | null;
   feedback: FeedbackType;
   sessionStats: SessionStats;

@@ -245,4 +245,9 @@ export class VerbManager {
       };
     }
   }
+
+  // Get all verbs for generating multiple choice options
+  getAllVerbs(): VerbPair[] {
+    return this.verbs;
+  }
 }
