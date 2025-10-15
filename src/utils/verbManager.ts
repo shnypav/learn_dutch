@@ -245,4 +245,47 @@ export class VerbManager {
       };
     }
   }
+
+  // Multiple choice methods
+  getMultipleChoiceOptions(verb: VerbPair, form: VerbForm): string[] {
+    const correctAnswer = this.getCorrectAnswer(verb, form);
+    const distractors = this.generateDistractors(verb, form, 3);
+    
+    // Combine correct answer with distractors and shuffle
+    const allOptions = [correctAnswer, ...distractors];
+    return shuffleArray(allOptions);
+  }
+
+  private generateDistractors(verb: VerbPair, form: VerbForm, count: number): string[] {
+    const correctAnswer = this.getCorrectAnswer(verb, form);
+    const distractors: string[] = [];
+    const allVerbs = this.verbs;
+    
+    // Filter out the current verb and get potential distractors
+    const potentialDistractors = allVerbs
+      .filter(v => {
+        const answer = this.getCorrectAnswer(v, form);
+        return answer !== correctAnswer && !distractors.includes(answer);
+      })
+      .map(v => this.getCorrectAnswer(v, form));
+    
+    // Shuffle and take the required count
+    const shuffled = shuffleArray(potentialDistractors);
+    
+    // Take the first 'count' items
+    for (let i = 0; i < Math.min(count, shuffled.length); i++) {
+      distractors.push(shuffled[i]);
+    }
+    
+    // If we don't have enough distractors, generate some fallback ones
+    while (distractors.length < count && allVerbs.length > 0) {
+      const randomVerb = allVerbs[Math.floor(Math.random() * allVerbs.length)];
+      const answer = this.getCorrectAnswer(randomVerb, form);
+      if (answer !== correctAnswer && !distractors.includes(answer)) {
+        distractors.push(answer);
+      }
+    }
+    
+    return distractors;
+  }
 }

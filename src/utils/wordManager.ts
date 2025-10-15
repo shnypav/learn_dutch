@@ -252,4 +252,47 @@ export class WordManager {
       };
     }
   }
+
+  // Multiple choice methods
+  getMultipleChoiceOptions(word: WordPair, mode: LearningMode): string[] {
+    const correctAnswer = this.getCorrectAnswer(word, mode);
+    const distractors = this.generateDistractors(word, mode, 3);
+    
+    // Combine correct answer with distractors and shuffle
+    const allOptions = [correctAnswer, ...distractors];
+    return shuffleArray(allOptions);
+  }
+
+  private generateDistractors(word: WordPair, mode: LearningMode, count: number): string[] {
+    const correctAnswer = this.getCorrectAnswer(word, mode);
+    const distractors: string[] = [];
+    const allWords = this.words;
+    
+    // Filter out the current word and get potential distractors
+    const potentialDistractors = allWords
+      .filter(w => {
+        const answer = this.getCorrectAnswer(w, mode);
+        return answer !== correctAnswer && !distractors.includes(answer);
+      })
+      .map(w => this.getCorrectAnswer(w, mode));
+    
+    // Shuffle and take the required count
+    const shuffled = shuffleArray(potentialDistractors);
+    
+    // Take the first 'count' items
+    for (let i = 0; i < Math.min(count, shuffled.length); i++) {
+      distractors.push(shuffled[i]);
+    }
+    
+    // If we don't have enough distractors, generate some fallback ones
+    while (distractors.length < count && allWords.length > 0) {
+      const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+      const answer = this.getCorrectAnswer(randomWord, mode);
+      if (answer !== correctAnswer && !distractors.includes(answer)) {
+        distractors.push(answer);
+      }
+    }
+    
+    return distractors;
+  }
 }
