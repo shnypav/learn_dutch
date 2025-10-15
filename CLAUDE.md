@@ -3,6 +3,7 @@
 This file contains project-specific information for Claude Code.
 
 ## Project Overview
+
 - Working directory: /Users/Pavel.Shnyrin/work/mine/fresher
 - Git repository: Yes
 - Main branch: main
@@ -10,6 +11,7 @@ This file contains project-specific information for Claude Code.
 - Tech Stack: React 19 + TypeScript + Vite + Tailwind CSS + Vitest
 
 ## Common Commands
+
 - `npm run dev` - Start development server (runs on http://localhost:5173)
 - `npm run build` - Build for production (TypeScript compile + Vite build)
 - `npm run preview` - Preview production build
@@ -19,6 +21,7 @@ This file contains project-specific information for Claude Code.
 - `npm run test:ui` - Run tests with UI
 
 ## Project Structure
+
 ```
 src/
 ├── components/           # React components
@@ -60,11 +63,12 @@ public/data/             # CSV datasets
 ```
 
 ## Dependencies
-- **Runtime**: 
+
+- **Runtime**:
   - React 19.1.0 & React DOM 19.1.0
   - Papa Parse 5.5.3 (CSV parsing)
   - Tailwind CSS 4.1.11 (with PostCSS)
-- **Dev**: 
+- **Dev**:
   - TypeScript 5.8.3
   - Vite 7.0.0
   - ESLint 9.29.0 (with React hooks & refresh plugins)
@@ -76,6 +80,7 @@ public/data/             # CSV datasets
 - **AI Integration**: Perplexity API for contextual hints
 
 ## Testing
+
 - Framework: Vitest
 - `npm run test` - Run in watch mode
 - `npm run test:run` - Single run
@@ -83,16 +88,18 @@ public/data/             # CSV datasets
 - Test files: `*.test.ts`, `*.test.tsx`
 
 ## Build & Deployment
+
 - `npm run build` - Creates `dist/` folder
 - Ready for: Netlify, Vercel, GitHub Pages
 - Dev server port: 5173
 - Production preview: `npm run preview`
 
 ## Features
-- **Content Types**: 
+
+- **Content Types**:
   - Vocabulary words practice
   - Irregular verb conjugation (all tenses)
-- **AI Integration**: 
+- **AI Integration**:
   - Context-aware hints via Perplexity API
   - Configurable hint settings
   - Search-based example generation

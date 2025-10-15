@@ -7,25 +7,30 @@ A comprehensive, AI-powered Dutch language learning platform with vocabulary and
 ## ✨ Features
 
 ### 📚 **Dual Content Types**
+
 - **Vocabulary Learning**: Practice Dutch-English word pairs from curated datasets
 - **Irregular Verbs**: Master Dutch verb conjugations with infinitive, imperfectum, and perfectum forms
 
 ### 🎯 **Multiple Learning Modes**
+
 - 🔄 **Word Modes**: Dutch → English and English → Dutch translation
 - 🔀 **Verb Modes**: Random forms, Infinitive focus, Imperfectum practice, Perfectum training
 
 ### 🤖 **AI-Powered Learning**
+
 - **Smart Hints**: AI-generated contextual examples and usage tips via Perplexity API
 - **Progressive Hint System**: 4-level hint progression from subtle to explicit
 - **Hover Context**: Instant example sentences for better understanding
 
 ### 📊 **Advanced Analytics**
+
 - **Progress Tracking**: Session statistics and comprehensive all-time metrics
 - **Hint Analytics**: Track hint usage patterns and learning efficiency
 - **Streak System**: Build and maintain learning streaks across content types
 - **Known Words Management**: Mark and manage already-learned vocabulary
 
 ### 🎨 **Modern Experience**
+
 - **Theme System**: Multiple visual themes (Ocean, Duo) for personalized experience
 - **Smart Fuzzy Matching**: Accepts minor typos and spelling variations
 - **Responsive Design**: Optimized for desktop, tablet, and mobile devices
@@ -35,12 +40,14 @@ A comprehensive, AI-powered Dutch language learning platform with vocabulary and
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js (v18 or higher)
 - npm or yarn
 
 ### Installation
 
 1. **Clone and install dependencies:**
+
    ```bash
    git clone <repository-url>
    cd fresher
@@ -48,6 +55,7 @@ A comprehensive, AI-powered Dutch language learning platform with vocabulary and
    ```
 
 2. **Start development server:**
+
    ```bash
    npm run dev
    ```
@@ -65,11 +73,13 @@ npm run preview  # Preview the production build
 ## 🎯 How to Use
 
 ### Getting Started
+
 1. **Choose Content Type**: Select between Words or Irregular Verbs learning
 2. **Select Learning Mode**: Pick your preferred mode (translation directions or verb forms)
 3. **Configure AI Hints** (Optional): Set up Perplexity API key for AI-powered contextual hints
 
 ### Learning Flow
+
 1. **Study the Content**: A word or verb form will be displayed
 2. **Use Smart Hints**: Hover over words for AI-generated examples, or use progressive hints if stuck
 3. **Type Your Answer**: Enter the translation or conjugation
@@ -78,6 +88,7 @@ npm run preview  # Preview the production build
 6. **Track Progress**: Monitor accuracy, streaks, hint usage, and learning analytics
 
 ### Advanced Features
+
 - **Statistics Dashboard**: View comprehensive metrics including hint analytics and known words management
 - **Theme Switching**: Personalize your learning environment with different visual themes
 - **Persistent Progress**: All data automatically saves locally for seamless session continuity
@@ -130,6 +141,7 @@ public/
 ## 🎨 Features in Detail
 
 ### 🤖 AI-Powered Hints System
+
 - **Perplexity Integration**: Real-time AI-generated contextual examples and usage tips
 - **Progressive Disclosure**: 4-level hint system from subtle clues to explicit answers
 - **Hover Context**: Instant example sentences appear on word hover
@@ -137,6 +149,7 @@ public/
 - **Usage Analytics**: Track hint effectiveness and learning patterns
 
 ### 🧠 Intelligent Answer Validation
+
 - **Advanced Fuzzy Matching**: Accepts minor typos (up to 2 character differences)
 - **Case Insensitive**: Flexible input handling for natural typing
 - **Multiple Answer Support**: Handles alternative answers separated by `/` or `,`
@@ -144,6 +157,7 @@ public/
 - **Verb Form Recognition**: Specialized validation for Dutch verb conjugations
 
 ### 📈 Comprehensive Analytics
+
 - **Multi-Dimensional Tracking**: Words, verbs, hints, streaks, and accuracy metrics
 - **Session vs. All-Time**: Detailed breakdowns of current and historical performance
 - **Learning Insights**: Hint usage trends, difficulty patterns, and progress visualization
@@ -151,6 +165,7 @@ public/
 - **Motivational Feedback**: Context-aware encouragement based on performance patterns
 
 ### 🎨 Enhanced User Experience
+
 - **Multi-Theme Support**: Ocean and Duo themes with smooth transitions
 - **Responsive Design**: Optimized layouts for desktop, tablet, and mobile devices
 - **Smooth Animations**: Fade-ins, slide-ups, hover effects, and micro-interactions
@@ -161,6 +176,7 @@ public/
 ## 📊 Data Structure
 
 ### Vocabulary Dataset (`dutch_common_words.csv`)
+
 ```csv
 Dutch,English
 hond,dog
@@ -170,6 +186,7 @@ auto,car
 ```
 
 ### Irregular Verbs Dataset (`dutch_irregular_verbs.csv`)
+
 ```csv
 Infinitive,Imperfectum,Perfectum,English
 zijn,was/waren,geweest,to be
@@ -181,16 +198,19 @@ komen,kwam/kwamen,gekomen,to come
 ## 🎨 Customization
 
 ### Adding Content
+
 1. **Vocabulary**: Edit `public/data/dutch_common_words.csv` following the `Dutch,English` format
 2. **Irregular Verbs**: Edit `public/data/dutch_irregular_verbs.csv` with `Infinitive,Imperfectum,Perfectum,English` columns
 3. Restart the development server to load new content
 
 ### AI Hints Configuration
+
 1. Obtain a Perplexity API key from [perplexity.ai](https://www.perplexity.ai)
 2. Use the in-app configuration dialog to set up AI hints
 3. Test the integration with the built-in validation system
 
 ### Theme Customization
+
 - **Built-in Themes**: Switch between Ocean and Duo themes via the theme toggle
 - **Custom Styling**: Modify `src/index.css` for global styles
 - **Tailwind Configuration**: Update `tailwind.config.js` for new colors and animations
@@ -199,6 +219,7 @@ komen,kwam/kwamen,gekomen,to come
 ## 🚀 Deployment
 
 This app is ready for deployment on:
+
 - **Netlify**: Drag and drop the `dist` folder
 - **Vercel**: Connect your Git repository
 - **GitHub Pages**: Use GitHub Actions for automatic deployment

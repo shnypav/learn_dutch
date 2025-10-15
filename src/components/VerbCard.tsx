@@ -1,7 +1,7 @@
-import type { VerbPair, VerbForm, FeedbackType } from '../types';
-import { useRef, useEffect, useState } from 'react';
-import { useAIHint } from '../contexts/AIHintContext';
-import AIHintPopup from './AIHintPopup';
+import type { VerbPair, VerbForm, FeedbackType } from "../types";
+import { useRef, useEffect, useState } from "react";
+import { useAIHint } from "../contexts/AIHintContext";
+import AIHintPopup from "./AIHintPopup";
 
 interface VerbCardProps {
   verb: VerbPair | null;
@@ -16,12 +16,12 @@ const VerbCard: React.FC<VerbCardProps> = ({
   verbForm,
   verbFormLabel,
   feedback,
-  correctAnswer
+  correctAnswer,
 }) => {
   const textRef = useRef<HTMLHeadingElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [fontSize, setFontSize] = useState('text-4xl md:text-5xl');
-  
+  const [fontSize, setFontSize] = useState("text-4xl md:text-5xl");
+
   // AI hint popup state
   const [showHintPopup, setShowHintPopup] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -37,13 +37,13 @@ const VerbCard: React.FC<VerbCardProps> = ({
     const availableWidth = container.clientWidth - 64;
 
     const fontSizes = [
-      { class: 'text-4xl md:text-5xl', size: 48 },
-      { class: 'text-3xl md:text-4xl', size: 36 },
-      { class: 'text-2xl md:text-3xl', size: 24 },
-      { class: 'text-xl md:text-2xl', size: 20 },
-      { class: 'text-lg md:text-xl', size: 18 },
-      { class: 'text-base md:text-lg', size: 16 },
-      { class: 'text-sm md:text-base', size: 14 }
+      { class: "text-4xl md:text-5xl", size: 48 },
+      { class: "text-3xl md:text-4xl", size: 36 },
+      { class: "text-2xl md:text-3xl", size: 24 },
+      { class: "text-xl md:text-2xl", size: 20 },
+      { class: "text-lg md:text-xl", size: 18 },
+      { class: "text-base md:text-lg", size: 16 },
+      { class: "text-sm md:text-base", size: 14 },
     ];
 
     for (const fontOption of fontSizes) {
@@ -56,18 +56,18 @@ const VerbCard: React.FC<VerbCardProps> = ({
       }
     }
 
-    setFontSize('text-sm md:text-base');
+    setFontSize("text-sm md:text-base");
   };
 
   useEffect(() => {
     if (verb) {
       setTimeout(() => adjustFontSize(), 10);
-      
+
       // Preload AI hint when new verb is shown (not during feedback)
       if (feedback === null && isConfigured && verbForm) {
         // Get the conjugated form as the translation
-        const conjugatedForm = verb[verbForm] || '';
-        preloadHint(verb.english_infinitive, conjugatedForm, 'en-nl');
+        const conjugatedForm = verb[verbForm] || "";
+        preloadHint(verb.english_infinitive, conjugatedForm, "en-nl");
       }
     }
   }, [verb, verbForm, feedback, correctAnswer, isConfigured, preloadHint]);
@@ -93,28 +93,30 @@ const VerbCard: React.FC<VerbCardProps> = ({
     );
   }
 
-  const displayWord = feedback === 'incorrect' && correctAnswer
-    ? correctAnswer
-    : verb.english_infinitive;
+  const displayWord =
+    feedback === "incorrect" && correctAnswer
+      ? correctAnswer
+      : verb.english_infinitive;
 
-  const cardLabel = feedback === 'incorrect' && correctAnswer
-    ? `Correct Answer: ${verbFormLabel}`
-    : `English → ${verbFormLabel}`;
+  const cardLabel =
+    feedback === "incorrect" && correctAnswer
+      ? `Correct Answer: ${verbFormLabel}`
+      : `English → ${verbFormLabel}`;
 
   const getFeedbackClasses = (): string => {
     switch (feedback) {
-      case 'correct':
-        return 'feedback-correct border-green-300 card-bg';
-      case 'incorrect':
-        return 'feedback-incorrect border-red-300 card-bg';
+      case "correct":
+        return "feedback-correct border-green-300 card-bg";
+      case "incorrect":
+        return "feedback-incorrect border-red-300 card-bg";
       default:
-        return 'card-bg border-white border-opacity-20';
+        return "card-bg border-white border-opacity-20";
     }
   };
 
   const handleWordHover = (e: React.MouseEvent) => {
     if (!verb || feedback !== null || !verbForm) return; // Don't show during feedback
-    
+
     if (!isConfigured) {
       setShowConfigDialog(true);
       return;
@@ -124,7 +126,7 @@ const VerbCard: React.FC<VerbCardProps> = ({
     const rect = e.currentTarget.getBoundingClientRect();
     setMousePosition({
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     });
 
     // Clear any existing timeout
@@ -136,7 +138,7 @@ const VerbCard: React.FC<VerbCardProps> = ({
     const timeout = setTimeout(() => {
       setShowHintPopup(true);
     }, 500); // 500ms delay
-    
+
     setHoverTimeout(timeout);
   };
 
@@ -145,7 +147,7 @@ const VerbCard: React.FC<VerbCardProps> = ({
       const rect = e.currentTarget.getBoundingClientRect();
       setMousePosition({
         x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        y: e.clientY - rect.top,
       });
     }
   };
@@ -156,7 +158,7 @@ const VerbCard: React.FC<VerbCardProps> = ({
       clearTimeout(hoverTimeout);
       setHoverTimeout(null);
     }
-    
+
     // Hide immediately when leaving
     setShowHintPopup(false);
   };
@@ -185,20 +187,20 @@ const VerbCard: React.FC<VerbCardProps> = ({
             <span className="absolute -top-2 -right-2 w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
           )}
         </h2>
-        
+
         {/* AI Hint Tooltip - positioned above mouse cursor */}
         {showHintPopup && verb && verbForm && (
-          <div 
+          <div
             className="absolute z-50 pointer-events-none"
             style={{
               left: `${mousePosition.x}px`,
               top: `${mousePosition.y - 40}px`,
-              transform: 'translate(-50%, -100%)'
+              transform: "translate(-50%, -100%)",
             }}
           >
             <AIHintPopup
               word={verb.english_infinitive}
-              translation={verb[verbForm] || ''}
+              translation={verb[verbForm] || ""}
               mode="en-nl"
               isVisible={showHintPopup}
               onClose={() => setShowHintPopup(false)}
@@ -206,7 +208,6 @@ const VerbCard: React.FC<VerbCardProps> = ({
           </div>
         )}
       </div>
-
 
       {/*<div className="text-secondary-light text-sm">*/}
       {/*  Provide the {verbFormLabel.toLowerCase()} form*/}

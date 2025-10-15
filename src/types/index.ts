@@ -1,22 +1,32 @@
-export interface WordPair {
+// Re-export SRS types from separate module
+export type { SRSQuality, ReviewRecord, SRSCardData } from "./srs";
+import type { SRSCardData } from "./srs";
+
+export type WordPair = {
   dutch: string;
   english: string;
-  known?: boolean;
-}
+  known?: boolean; // Legacy field, kept for backward compatibility
+  srsData?: SRSCardData;
+};
 
-export interface VerbPair {
+export type VerbPair = {
   english_infinitive: string;
   dutch_infinitive: string;
   imperfectum_single: string;
   imperfectum_plural: string;
   perfectum: string;
-}
+  srsData?: SRSCardData;
+};
 
-export type VerbForm = 'dutch_infinitive' | 'imperfectum_single' | 'imperfectum_plural' | 'perfectum';
+export type VerbForm =
+  | "dutch_infinitive"
+  | "imperfectum_single"
+  | "imperfectum_plural"
+  | "perfectum";
 
-export type VerbMode = 'random' | 'infinitive' | 'imperfectum' | 'perfectum';
+export type VerbMode = "random" | "infinitive" | "imperfectum" | "perfectum";
 
-export interface UserProgress {
+export type UserProgress = {
   correctAnswers: number;
   totalAnswers: number;
   currentStreak: number;
@@ -27,9 +37,16 @@ export interface UserProgress {
   totalHintsUsed: number;
   questionsWithHints: number;
   hintsPerSession: number[];
-}
+  // SRS-related statistics
+  cardsReviewedToday: number;
+  newCardsToday: number;
+  matureCards: number; // Cards with interval > 21 days
+  youngCards: number; // Cards with interval 1-21 days
+  learningCards: number; // Cards in initial learning phase
+  lastReviewDate: string; // Date when last review was done
+};
 
-export interface SessionStats {
+export type SessionStats = {
   correct: number;
   total: number;
   accuracy: number;
@@ -38,15 +55,15 @@ export interface SessionStats {
   hintsUsed: number;
   questionsWithHints: number;
   averageHintsPerQuestion: number;
-}
+};
 
-export type LearningMode = 'nl-en' | 'en-nl';
+export type LearningMode = "nl-en" | "en-nl";
 
-export type ContentType = 'words' | 'verbs';
+export type ContentType = "words" | "verbs";
 
-export type FeedbackType = 'correct' | 'incorrect' | null;
+export type FeedbackType = "correct" | "incorrect" | null;
 
-export interface GameState {
+export type GameState = {
   currentWord: WordPair | null;
   currentVerb: VerbPair | null;
   mode: LearningMode;
@@ -57,6 +74,6 @@ export interface GameState {
   sessionStats: SessionStats;
   isLoading: boolean;
   error: string | null;
-}
+};
 
-export type Theme = 'default' | 'duo';
+export type Theme = "default" | "duo";

@@ -34,7 +34,7 @@ server: {
 ### How It Works
 
 ```
-Browser (localhost:5173) 
+Browser (localhost:5173)
     ↓ calls /api/perplexity/search
 Vite Dev Server (proxies to)
     ↓
@@ -61,36 +61,36 @@ mkdir -p netlify/functions
 // netlify/functions/perplexity-proxy.js
 export async function handler(event, context) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
-  
+
   if (!apiKey) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'API key not configured' })
+      body: JSON.stringify({ error: "API key not configured" }),
     };
   }
 
   const { endpoint, body } = JSON.parse(event.body);
-  
+
   try {
     const response = await fetch(`https://api.perplexity.ai${endpoint}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     const data = await response.json();
-    
+
     return {
       statusCode: response.status,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ error: error.message }),
     };
   }
 }
@@ -110,8 +110,8 @@ export async function handler(event, context) {
 3. **Update `aiHintService.ts`:**
 
 ```typescript
-private readonly searchUrl = import.meta.env.DEV 
-  ? '/api/perplexity/search' 
+private readonly searchUrl = import.meta.env.DEV
+  ? '/api/perplexity/search'
   : '/.netlify/functions/perplexity-proxy';
 ```
 
@@ -123,21 +123,21 @@ Similar approach with Vercel:
 // api/perplexity-proxy.js
 export default async function handler(req, res) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
-  
+
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured' });
+    return res.status(500).json({ error: "API key not configured" });
   }
 
   const { endpoint, body } = req.body;
-  
+
   try {
     const response = await fetch(`https://api.perplexity.ai${endpoint}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     const data = await response.json();
@@ -158,26 +158,26 @@ npm install express cors dotenv
 
 ```javascript
 // server.js
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/api/perplexity/*', async (req, res) => {
+app.post("/api/perplexity/*", async (req, res) => {
   const endpoint = req.params[0];
   const apiKey = process.env.PERPLEXITY_API_KEY;
 
   try {
     const response = await fetch(`https://api.perplexity.ai/${endpoint}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(req.body),
     });
 
     const data = await response.json();
@@ -188,8 +188,8 @@ app.post('/api/perplexity/*', async (req, res) => {
 });
 
 // Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('dist'));
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("dist"));
 }
 
 const PORT = process.env.PORT || 3000;
@@ -211,6 +211,7 @@ private apiKey = 'your-key-here'; // ⚠️ INSECURE - DO NOT USE IN PRODUCTION
 ```
 
 Then use a CORS proxy service (also not recommended for production):
+
 - https://cors-anywhere.herokuapp.com/
 - https://corsproxy.io/
 
@@ -236,11 +237,13 @@ Then use a CORS proxy service (also not recommended for production):
 ## 🔧 Updated Architecture
 
 ### Development (Current)
+
 ```
 Browser → Vite Proxy → Perplexity API
 ```
 
 ### Production (Recommended)
+
 ```
 Browser → Netlify Function → Perplexity API
         (with API key hidden)
@@ -266,8 +269,6 @@ Browser → Netlify Function → Perplexity API
 - [Netlify Functions](https://docs.netlify.com/functions/overview/)
 - [Vercel Serverless Functions](https://vercel.com/docs/functions)
 - [Vite Proxy Config](https://vitejs.dev/config/server-options.html#server-proxy)
-
-
 
 
 

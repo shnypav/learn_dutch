@@ -37,23 +37,23 @@ private cleanMarkdownFormatting(text: string): string {
 ```typescript
 private extractPureExample(text: string): string {
   const cleaned = this.cleanMarkdownFormatting(text);
-  
+
   // If "Example:" label exists, extract what comes after
   const exampleMatch = cleaned.match(/example[:\s]+(.+)/i);
   if (exampleMatch && exampleMatch[1]) {
     return exampleMatch[1].trim();
   }
-  
+
   // Otherwise find first substantial sentence (15+ chars, 4+ words)
   const lines = cleaned.split('\n')
     .map(line => line.trim())
-    .filter(line => 
-      line.length > 15 && 
+    .filter(line =>
+      line.length > 15 &&
       !line.match(/^#+/) &&
       !line.toLowerCase().startsWith('example') &&
       line.split(' ').length >= 4
     );
-  
+
   return lines[0] || cleaned;
 }
 ```
@@ -61,6 +61,7 @@ private extractPureExample(text: string): string {
 ### 3. Better Filtering
 
 Now filters out:
+
 - ❌ Markdown headers (`##`, `###`)
 - ❌ "Example:" labels
 - ❌ Lines shorter than 15 characters
@@ -91,8 +92,6 @@ const cleanedSentence = this.extractPureExample(generatedSentence);
 ## Result
 
 Users now see **only the clean example sentence** without any markdown formatting, headers, or labels! 🎉
-
-
 
 
 

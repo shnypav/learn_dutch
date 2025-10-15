@@ -1,172 +1,174 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
-    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --card-bg: rgba(255, 255, 255, 0.1);
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.8);
-    --text-muted: rgba(255, 255, 255, 0.6);
-    --input-bg: rgba(255, 255, 255, 0.1);
-    --input-border: rgba(255, 255, 255, 0.3);
-    --button-bg: rgba(255, 255, 255, 0.2);
-    --button-hover: rgba(255, 255, 255, 0.3);
-    --progress-bar: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
-    --correct-feedback: #10b981;
-    --incorrect-feedback: #ef4444;
-    --hint-bg: rgba(255, 255, 255, 0.15);
-    --hint-border: rgba(255, 255, 255, 0.25);
-    --hint-text: #ffffff;
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --card-bg: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --input-bg: rgba(255, 255, 255, 0.1);
+  --input-border: rgba(255, 255, 255, 0.3);
+  --button-bg: rgba(255, 255, 255, 0.2);
+  --button-hover: rgba(255, 255, 255, 0.3);
+  --progress-bar: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+  --correct-feedback: #10b981;
+  --incorrect-feedback: #ef4444;
+  --hint-bg: rgba(255, 255, 255, 0.15);
+  --hint-border: rgba(255, 255, 255, 0.25);
+  --hint-text: #ffffff;
 }
 
 /* Custom utilities for your beautiful Dutch learning app */
 @layer utilities {
-    .bg-gradient-primary {
-        background: var(--bg-gradient);
-    }
+  .bg-gradient-primary {
+    background: var(--bg-gradient);
+  }
 
-    .bg-gradient-secondary {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
+  .bg-gradient-secondary {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
 
-    .bg-gradient-success {
-        background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-    }
+  .bg-gradient-success {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+  }
 
-    .bg-gradient-error {
-        background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
-    }
+  .bg-gradient-error {
+    background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+  }
 
-    .input-glow {
-        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1),
-            0 4px 12px rgba(0, 0, 0, 0.15),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    }
+  .input-glow {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 4px 12px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
 
-    .card-glow {
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12),
-            0 2px 8px rgba(0, 0, 0, 0.08),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    }
+  .card-glow {
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      0 2px 8px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
 
-    /* Text color utilities using CSS variables */
-    .text-primary {
-        color: var(--text-primary);
-    }
+  /* Text color utilities using CSS variables */
+  .text-primary {
+    color: var(--text-primary);
+  }
 
-    .text-primary-light {
-        color: var(--text-primary);
-    }
+  .text-primary-light {
+    color: var(--text-primary);
+  }
 
-    .text-secondary {
-        color: var(--text-secondary);
-    }
+  .text-secondary {
+    color: var(--text-secondary);
+  }
 
-    .text-secondary-light {
-        color: var(--text-secondary);
-    }
+  .text-secondary-light {
+    color: var(--text-secondary);
+  }
 
-    .text-muted {
-        color: var(--text-muted);
-    }
+  .text-muted {
+    color: var(--text-muted);
+  }
 
-    .text-muted-light {
-        color: var(--text-muted);
-    }
+  .text-muted-light {
+    color: var(--text-muted);
+  }
 
-    /* Input styling with theme variables */
-    .input-field {
-        background: var(--input-bg);
-        border: 1px solid var(--input-border);
-        color: var(--text-primary);
-    }
+  /* Input styling with theme variables */
+  .input-field {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+  }
 
-    .input-field::placeholder {
-        color: var(--text-muted);
-    }
+  .input-field::placeholder {
+    color: var(--text-muted);
+  }
 
-    .input-field:focus {
-        background: var(--input-bg);
-        border-color: var(--input-border);
-        outline: none;
-        opacity: 0.8;
-    }
+  .input-field:focus {
+    background: var(--input-bg);
+    border-color: var(--input-border);
+    outline: none;
+    opacity: 0.8;
+  }
 
-    /* Card backgrounds with theme variables */
-    .card-bg {
-        background: var(--card-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--input-border);
-    }
+  /* Card backgrounds with theme variables */
+  .card-bg {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--input-border);
+  }
 
-    .card-bg-light {
-        background: var(--card-bg);
-        color: var(--text-primary);
-    }
+  .card-bg-light {
+    background: var(--card-bg);
+    color: var(--text-primary);
+  }
 
-    /* Progress bar styling with theme variables */
-    .progress-bar {
-        background: var(--progress-bar);
-        box-shadow: 0 2px 4px rgba(88, 204, 2, 0.3);
-    }
+  /* Progress bar styling with theme variables */
+  .progress-bar {
+    background: var(--progress-bar);
+    box-shadow: 0 2px 4px rgba(88, 204, 2, 0.3);
+  }
 
-    /* Button styling with theme variables */
-    .btn-primary {
-        background: var(--button-bg);
-        color: var(--text-primary);
-        border: 1px solid var(--input-border);
-    }
+  /* Button styling with theme variables */
+  .btn-primary {
+    background: var(--button-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--input-border);
+  }
 
-    .btn-primary:hover {
-        background: var(--button-hover);
-        border-color: var(--input-border);
-    }
+  .btn-primary:hover {
+    background: var(--button-hover);
+    border-color: var(--input-border);
+  }
 
-    /* Feedback colors using theme variables */
-    .feedback-correct {
-        background: var(--card-bg);
-        border-color: var(--correct-feedback) !important;
-        box-shadow: 0 0 20px rgba(88, 204, 2, 0.3);
-    }
+  /* Feedback colors using theme variables */
+  .feedback-correct {
+    background: var(--card-bg);
+    border-color: var(--correct-feedback) !important;
+    box-shadow: 0 0 20px rgba(88, 204, 2, 0.3);
+  }
 
-    .feedback-incorrect {
-        background: var(--card-bg);
-        border-color: var(--incorrect-feedback) !important;
-        box-shadow: 0 0 20px rgba(211, 49, 49, 0.3);
-    }
+  .feedback-incorrect {
+    background: var(--card-bg);
+    border-color: var(--incorrect-feedback) !important;
+    box-shadow: 0 0 20px rgba(211, 49, 49, 0.3);
+  }
 
-    /* Hint button styling with theme variables */
-    .hint-btn {
-        background: var(--hint-bg);
-        border-color: var(--hint-border);
-        color: var(--hint-text);
-    }
+  /* Hint button styling with theme variables */
+  .hint-btn {
+    background: var(--hint-bg);
+    border-color: var(--hint-border);
+    color: var(--hint-text);
+  }
 
-    .hint-btn:hover {
-        background: var(--button-hover);
-        border-color: var(--hint-border);
-        transform: scale(1.02);
-    }
+  .hint-btn:hover {
+    background: var(--button-hover);
+    border-color: var(--hint-border);
+    transform: scale(1.02);
+  }
 
-    .hint-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-    }
+  .hint-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
 
-    /* Animation for AI hint popup */
-    .animate-fade-in {
-        animation: fadeIn 0.2s ease-out;
-    }
+  /* Animation for AI hint popup */
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
     }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }

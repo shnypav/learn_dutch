@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import type { AIHintResult } from '../services/aiHintService';
-import type { LearningMode } from '../types';
-import { useAIHint } from '../contexts/AIHintContext';
+import { useState, useEffect } from "react";
+import type { AIHintResult } from "../services/aiHintService";
+import type { LearningMode } from "../types";
+import { useAIHint } from "../contexts/AIHintContext";
 
 interface AIHintPopupProps {
   word: string;
@@ -11,11 +11,11 @@ interface AIHintPopupProps {
   onClose?: () => void;
 }
 
-const AIHintPopup: React.FC<AIHintPopupProps> = ({ 
-  word, 
-  translation, 
-  mode, 
-  isVisible
+const AIHintPopup: React.FC<AIHintPopupProps> = ({
+  word,
+  translation,
+  mode,
+  isVisible,
 }) => {
   const { getCachedHint, isHintLoading } = useAIHint();
   const [hintData, setHintData] = useState<AIHintResult | null>(null);
@@ -23,9 +23,9 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
 
   const cleanMarkdown = (text: string): string => {
     return text
-      .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold**
-      .replace(/\*(.*?)\*/g, '$1')      // Remove *italic*
-      .replace(/^["']|["']$/g, '')      // Remove surrounding quotes
+      .replace(/\*\*(.*?)\*\*/g, "$1") // Remove **bold**
+      .replace(/\*(.*?)\*/g, "$1") // Remove *italic*
+      .replace(/^["']|["']$/g, "") // Remove surrounding quotes
       .trim();
   };
 
@@ -40,7 +40,7 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
         // Check if it's currently loading
         const loading = isHintLoading(word, translation, mode);
         setIsLoading(loading);
-        
+
         // If loading, poll for the result
         if (loading) {
           const checkInterval = setInterval(() => {
@@ -51,7 +51,7 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
               clearInterval(checkInterval);
             }
           }, 500); // Check every 500ms
-          
+
           // Cleanup interval on unmount or when dependencies change
           return () => clearInterval(checkInterval);
         }
@@ -79,30 +79,38 @@ const AIHintPopup: React.FC<AIHintPopupProps> = ({
     return null;
   }
 
-  const targetLang = mode === 'nl-en' ? 'dutch' : 'english';
-  const examplesTitle = targetLang === 'dutch' ? 'Voorbeelden:' : 'Examples:';
-  const explanationTitle = targetLang === 'dutch' ? 'Uitleg:' : 'Explanation:';
+  const targetLang = mode === "nl-en" ? "dutch" : "english";
+  const examplesTitle = targetLang === "dutch" ? "Voorbeelden:" : "Examples:";
+  const explanationTitle = targetLang === "dutch" ? "Uitleg:" : "Explanation:";
 
   return (
     <div className="bg-gray-800/70 text-white text-sm text-left px-4 py-3 rounded-md shadow-lg min-w-80 max-w-lg animate-fade-in backdrop-blur-md">
       <div className="space-y-3">
         {/* Explanation Section */}
         <div>
-          <div className="text-blue-400 font-semibold mb-1">{explanationTitle}</div>
-          <div className="text-gray-100">{cleanMarkdown(hintData.explanation)}</div>
+          <div className="text-blue-400 font-semibold mb-1">
+            {explanationTitle}
+          </div>
+          <div className="text-gray-100">
+            {cleanMarkdown(hintData.explanation)}
+          </div>
         </div>
-        
+
         {/* Divider */}
         <div className="border-t border-gray-600"></div>
-        
+
         {/* Examples Section */}
         <div>
-          <div className="text-blue-400 font-semibold mb-1">{examplesTitle}</div>
+          <div className="text-blue-400 font-semibold mb-1">
+            {examplesTitle}
+          </div>
           <div className="space-y-1">
             {hintData.examples.map((sentence, index) => (
               <div key={index} className="flex items-start space-x-2 text-left">
                 <span className="text-gray-400 mt-0.5">{index + 1}.</span>
-                <span className="flex-1 text-gray-100">{cleanMarkdown(sentence)}</span>
+                <span className="flex-1 text-gray-100">
+                  {cleanMarkdown(sentence)}
+                </span>
               </div>
             ))}
           </div>

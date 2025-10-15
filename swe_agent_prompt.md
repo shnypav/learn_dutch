@@ -7,6 +7,7 @@ Create a modern, minimalistic web application for learning Dutch vocabulary usin
 ## Technical Requirements
 
 ### Tech Stack
+
 - **Frontend**: React.js with TypeScript
 - **Styling**: Tailwind CSS + custom CSS for gradients and animations
 - **Data Storage**: Browser LocalStorage for user progress
@@ -14,6 +15,7 @@ Create a modern, minimalistic web application for learning Dutch vocabulary usin
 - **Deployment**: Static hosting (Netlify/Vercel ready)
 
 ### Project Structure
+
 ```
 /src
   /components
@@ -41,6 +43,7 @@ Create a modern, minimalistic web application for learning Dutch vocabulary usin
 ## Functional Requirements
 
 ### Core Features
+
 1. **CSV Data Loading**: Automatically parse and load Dutch-English word pairs from CSV file
 2. **Learning Modes**:
    - **NL → EN Mode**: Display Dutch word, user inputs English translation
@@ -50,6 +53,7 @@ Create a modern, minimalistic web application for learning Dutch vocabulary usin
 5. **Mode Switching**: Easy toggle between translation directions
 
 ### User Interface Features
+
 1. **Modern Design**: Clean, minimalistic interface following 2024 design trends
 2. **Responsive Layout**: Works perfectly on desktop, tablet, and mobile
 3. **Progress Tracking**: Visual indicators for session progress
@@ -59,6 +63,7 @@ Create a modern, minimalistic web application for learning Dutch vocabulary usin
 ## Design Specifications
 
 ### Visual Design
+
 - **Color Palette**: Modern gradients (e.g., blue-to-purple, teal-to-cyan)
 - **Typography**: Clean, readable fonts (Inter, Poppins, or similar)
 - **Layout**: Centered card-based design with generous white space
@@ -66,6 +71,7 @@ Create a modern, minimalistic web application for learning Dutch vocabulary usin
 - **Icons**: Minimal, outline-style icons for controls
 
 ### Design System
+
 ```css
 /* Primary gradient backgrounds */
 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -86,6 +92,7 @@ background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 ## Implementation Details
 
 ### CSV File Format
+
 ```csv
 dutch_word,english_translation
 hond,dog
@@ -97,28 +104,32 @@ auto,car
 ### Core Components
 
 #### WordCard Component
+
 ```typescript
 interface WordCardProps {
   word: string;
-  mode: 'nl-en' | 'en-nl';
+  mode: "nl-en" | "en-nl";
   onAnswer: (answer: string) => void;
-  feedback?: 'correct' | 'incorrect' | null;
+  feedback?: "correct" | "incorrect" | null;
 }
 ```
 
 #### Fuzzy Matching Logic
+
 - Accept answers with up to 2 character differences
 - Ignore case sensitivity
 - Handle common typos (doubled letters, swapped adjacent characters)
 - Consider multiple correct translations if they exist
 
 #### Progress Tracking
+
 - Session statistics (correct/total answers)
 - Streak counter (consecutive correct answers)
 - Overall accuracy percentage
 - Words learned counter
 
 ### Data Management
+
 - Load CSV on app initialization
 - Shuffle word order for each session
 - Prevent immediate repetition of the same word
@@ -139,18 +150,21 @@ interface WordCardProps {
 ## Technical Implementation Notes
 
 ### Performance Considerations
+
 - Lazy load CSV data
 - Implement virtual scrolling if dataset is large
 - Optimize re-renders with React.memo
 - Use debounced input validation
 
 ### Error Handling
+
 - Graceful CSV parsing error handling
 - Network failure fallbacks
 - Invalid input validation
 - Browser compatibility checks
 
 ### Accessibility
+
 - ARIA labels for screen readers
 - Keyboard navigation support
 - High contrast mode compatibility
@@ -159,12 +173,14 @@ interface WordCardProps {
 ## Deployment Requirements
 
 ### Build Configuration
+
 - Environment variables for different deployment stages
 - Optimized production build
 - Asset compression and minification
 - Progressive Web App (PWA) capabilities
 
 ### Testing
+
 - Unit tests for utility functions
 - Integration tests for core user flows
 - Cross-browser compatibility testing
@@ -179,6 +195,7 @@ interface WordCardProps {
 5. **Reliability**: Robust error handling and data persistence
 
 ## Timeline Estimate
+
 - **Setup & CSV Integration**: 2-3 hours
 - **Core Components**: 4-5 hours
 - **Styling & Animations**: 3-4 hours
@@ -186,6 +203,7 @@ interface WordCardProps {
 - **Total**: 11-15 hours
 
 ## Deliverables
+
 1. Complete React application with all specified features
 2. Deployed application with public URL
 3. README with setup and usage instructions

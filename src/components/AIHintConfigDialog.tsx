@@ -1,9 +1,15 @@
-import { useState } from 'react';
-import { useAIHint } from '../contexts/AIHintContext';
+import { useState } from "react";
+import { useAIHint } from "../contexts/AIHintContext";
 
 const AIHintConfigDialog: React.FC = () => {
-  const { showConfigDialog, setShowConfigDialog, setApiKey, isConfigured, clearApiKey } = useAIHint();
-  const [inputValue, setInputValue] = useState('');
+  const {
+    showConfigDialog,
+    setShowConfigDialog,
+    setApiKey,
+    isConfigured,
+    clearApiKey,
+  } = useAIHint();
+  const [inputValue, setInputValue] = useState("");
 
   if (!showConfigDialog) {
     return null;
@@ -13,13 +19,13 @@ const AIHintConfigDialog: React.FC = () => {
     e.preventDefault();
     if (inputValue.trim()) {
       setApiKey(inputValue.trim());
-      setInputValue('');
+      setInputValue("");
     }
   };
 
   const handleClose = () => {
     setShowConfigDialog(false);
-    setInputValue('');
+    setInputValue("");
   };
 
   return (
@@ -41,13 +47,14 @@ const AIHintConfigDialog: React.FC = () => {
 
           <div className="text-sm text-gray-300 space-y-2">
             <p>
-              Enter your Perplexity API key to enable AI-generated example sentences.
+              Enter your Perplexity API key to enable AI-generated example
+              sentences.
             </p>
             <p className="text-xs text-blue-300">
-              Get your API key from{' '}
-              <a 
-                href="https://www.perplexity.ai/settings/api" 
-                target="_blank" 
+              Get your API key from{" "}
+              <a
+                href="https://www.perplexity.ai/settings/api"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="underline hover:text-blue-400"
               >
@@ -58,7 +65,10 @@ const AIHintConfigDialog: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="api-key" className="block text-sm font-medium text-gray-300 mb-2">
+              <label
+                htmlFor="api-key"
+                className="block text-sm font-medium text-gray-300 mb-2"
+              >
                 API Key
               </label>
               <input
@@ -93,7 +103,9 @@ const AIHintConfigDialog: React.FC = () => {
           {isConfigured && (
             <div className="border-t border-gray-600 pt-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-green-400">✓ API key configured</span>
+                <span className="text-sm text-green-400">
+                  ✓ API key configured
+                </span>
                 <button
                   onClick={clearApiKey}
                   className="text-xs text-red-400 hover:text-red-300 transition-colors"

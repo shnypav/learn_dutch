@@ -1,6 +1,13 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { aiHintService, type AIHintResult } from '../services/aiHintService';
-import type { LearningMode } from '../types';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from "react";
+import { aiHintService, type AIHintResult } from "../services/aiHintService";
+import type { LearningMode } from "../types";
 
 interface HintCacheKey {
   word: string;
@@ -15,8 +22,16 @@ interface AIHintContextType {
   showConfigDialog: boolean;
   setShowConfigDialog: (show: boolean) => void;
   preloadHint: (word: string, translation: string, mode: LearningMode) => void;
-  getCachedHint: (word: string, translation: string, mode: LearningMode) => AIHintResult | null;
-  isHintLoading: (word: string, translation: string, mode: LearningMode) => boolean;
+  getCachedHint: (
+    word: string,
+    translation: string,
+    mode: LearningMode,
+  ) => AIHintResult | null;
+  isHintLoading: (
+    word: string,
+    translation: string,
+    mode: LearningMode,
+  ) => boolean;
 }
 
 const AIHintContext = createContext<AIHintContextType | undefined>(undefined);
@@ -25,12 +40,14 @@ interface AIHintProviderProps {
   children: ReactNode;
 }
 
-const API_KEY_STORAGE_KEY = 'ai_hint_api_key';
+const API_KEY_STORAGE_KEY = "ai_hint_api_key";
 
 export const AIHintProvider: React.FC<AIHintProviderProps> = ({ children }) => {
   const [isConfigured, setIsConfigured] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
-  const [hintCache, setHintCache] = useState<Map<string, AIHintResult>>(new Map());
+  const [hintCache, setHintCache] = useState<Map<string, AIHintResult>>(
+    new Map(),
+  );
   const [loadingHints, setLoadingHints] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -59,65 +76,87 @@ export const AIHintProvider: React.FC<AIHintProviderProps> = ({ children }) => {
     setLoadingHints(new Set());
   };
 
-  const getCacheKey = useCallback((word: string, translation: string, mode: LearningMode): string => {
-    return `${word}_${translation}_${mode}`;
-  }, []);
+  const getCacheKey = useCallback(
+    (word: string, translation: string, mode: LearningMode): string => {
+      return `${word}_${translation}_${mode}`;
+    },
+    [],
+  );
 
-  const preloadHint = useCallback(async (word: string, translation: string, mode: LearningMode) => {
-    if (!isConfigured) return;
-    
-    const cacheKey = getCacheKey(word, translation, mode);
-    
-    // Already cached or loading
-    if (hintCache.has(cacheKey) || loadingHints.has(cacheKey)) {
-      return;
-    }
+  const preloadHint = useCallback(
+    async (word: string, translation: string, mode: LearningMode) => {
+      if (!isConfigured) return;
 
-    // Mark as loading
-    setLoadingHints(prev => new Set(prev).add(cacheKey));
+      const cacheKey = getCacheKey(word, translation, mode);
 
-    try {
-      // Determine target language based on mode
-      const targetLang = mode === 'nl-en' ? 'dutch' : 'english';
-      
-      // Load the hint in background
-      const hintResult = await aiHintService.generateHint(word, translation, targetLang);
-      
-      // Store in cache
-      setHintCache(prev => new Map(prev).set(cacheKey, hintResult));
-    } catch (error) {
-      console.error('Failed to preload hint:', error);
-    } finally {
-      // Remove from loading set
-      setLoadingHints(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(cacheKey);
-        return newSet;
-      });
-    }
-  }, [isConfigured, getCacheKey]);
+      // Already cached or loading
+      if (hintCache.has(cacheKey) || loadingHints.has(cacheKey)) {
+        return;
+      }
 
-  const getCachedHint = useCallback((word: string, translation: string, mode: LearningMode): AIHintResult | null => {
-    const cacheKey = getCacheKey(word, translation, mode);
-    return hintCache.get(cacheKey) || null;
-  }, [hintCache, getCacheKey]);
+      // Mark as loading
+      setLoadingHints((prev) => new Set(prev).add(cacheKey));
 
-  const isHintLoading = useCallback((word: string, translation: string, mode: LearningMode): boolean => {
-    const cacheKey = getCacheKey(word, translation, mode);
-    return loadingHints.has(cacheKey);
-  }, [loadingHints, getCacheKey]);
+      try {
+        // Determine target language based on mode
+        const targetLang = mode === "nl-en" ? "dutch" : "english";
+
+        // Load the hint in background
+        const hintResult = await aiHintService.generateHint(
+          word,
+          translation,
+          targetLang,
+        );
+
+        // Store in cache
+        setHintCache((prev) => new Map(prev).set(cacheKey, hintResult));
+      } catch (error) {
+        console.error("Failed to preload hint:", error);
+      } finally {
+        // Remove from loading set
+        setLoadingHints((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(cacheKey);
+          return newSet;
+        });
+      }
+    },
+    [isConfigured, getCacheKey],
+  );
+
+  const getCachedHint = useCallback(
+    (
+      word: string,
+      translation: string,
+      mode: LearningMode,
+    ): AIHintResult | null => {
+      const cacheKey = getCacheKey(word, translation, mode);
+      return hintCache.get(cacheKey) || null;
+    },
+    [hintCache, getCacheKey],
+  );
+
+  const isHintLoading = useCallback(
+    (word: string, translation: string, mode: LearningMode): boolean => {
+      const cacheKey = getCacheKey(word, translation, mode);
+      return loadingHints.has(cacheKey);
+    },
+    [loadingHints, getCacheKey],
+  );
 
   return (
-    <AIHintContext.Provider value={{
-      isConfigured,
-      setApiKey,
-      clearApiKey,
-      showConfigDialog,
-      setShowConfigDialog,
-      preloadHint,
-      getCachedHint,
-      isHintLoading
-    }}>
+    <AIHintContext.Provider
+      value={{
+        isConfigured,
+        setApiKey,
+        clearApiKey,
+        showConfigDialog,
+        setShowConfigDialog,
+        preloadHint,
+        getCachedHint,
+        isHintLoading,
+      }}
+    >
       {children}
     </AIHintContext.Provider>
   );
@@ -127,7 +166,7 @@ export const AIHintProvider: React.FC<AIHintProviderProps> = ({ children }) => {
 export const useAIHint = () => {
   const context = useContext(AIHintContext);
   if (context === undefined) {
-    throw new Error('useAIHint must be used within an AIHintProvider');
+    throw new Error("useAIHint must be used within an AIHintProvider");
   }
   return context;
 };

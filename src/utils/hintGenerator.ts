@@ -13,7 +13,7 @@ export type HintLevel = 1 | 2 | 3 | 4;
 export function generateHint(answer: string, level: HintLevel): string {
   // Handle empty or null answers
   if (!answer || answer.trim().length === 0) {
-    return '';
+    return "";
   }
 
   const trimmedAnswer = answer.trim();
@@ -30,7 +30,7 @@ export function generateHint(answer: string, level: HintLevel): string {
       case 1:
         return trimmedAnswer[0];
       case 2:
-        return trimmedAnswer[0] + '*';
+        return trimmedAnswer[0] + "*";
       case 3:
       case 4:
         return trimmedAnswer;
@@ -44,22 +44,26 @@ export function generateHint(answer: string, level: HintLevel): string {
     case 1:
       // Show first letter only
       return trimmedAnswer[0];
-    
+
     case 2:
       // Show first letter + asterisks for remaining letters
       return trimmedAnswer[0] + createAsteriskPattern(trimmedAnswer.slice(1));
-    
+
     case 3:
       // Show first letter + asterisks + last letter
       if (length === 3) {
-        return trimmedAnswer[0] + '*' + trimmedAnswer[length - 1];
+        return trimmedAnswer[0] + "*" + trimmedAnswer[length - 1];
       }
-      return trimmedAnswer[0] + createAsteriskPattern(trimmedAnswer.slice(1, -1)) + trimmedAnswer[length - 1];
-    
+      return (
+        trimmedAnswer[0] +
+        createAsteriskPattern(trimmedAnswer.slice(1, -1)) +
+        trimmedAnswer[length - 1]
+      );
+
     case 4:
       // Show complete answer
       return trimmedAnswer;
-    
+
     default:
       return trimmedAnswer[0];
   }
@@ -71,7 +75,7 @@ export function generateHint(answer: string, level: HintLevel): string {
  * @returns String with letters replaced by asterisks, spaces and special chars preserved
  */
 function createAsteriskPattern(text: string): string {
-  return text.replace(/[a-zA-Z]/g, '*');
+  return text.replace(/[a-zA-Z]/g, "*");
 }
 
 /**

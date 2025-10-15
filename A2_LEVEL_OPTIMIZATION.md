@@ -3,6 +3,7 @@
 ## Problem
 
 AI hints were returning overly complex sentences like:
+
 ```
 "Getuigen mishandelen en dossiers meenemen zonder bevelschrift"
 (Witnesses, abuse, legal documents - way too advanced!)
@@ -18,10 +19,8 @@ Now explicitly requests beginner-level content:
 
 ```typescript
 // Before
-`"${word}" Dutch sentence example beginner`
-
-// After  
-`"${word}" simple Dutch sentence A2 beginner level example`
+`"${word}" Dutch sentence example beginner` // After
+`"${word}" simple Dutch sentence A2 beginner level example`;
 ```
 
 ### 2. **Detailed AI Prompts**
@@ -35,7 +34,7 @@ Requirements:
 - Maximum 8-10 words
 - Present tense when possible
 - Everyday context (not technical or complex topics)
-Return ONLY the sentence, nothing else.`
+Return ONLY the sentence, nothing else.`;
 ```
 
 ### 3. **Complexity Filter**
@@ -45,18 +44,18 @@ New `isSimpleEnough()` method filters out complex sentences:
 ```typescript
 private isSimpleEnough(sentence: string): boolean {
   const words = sentence.split(/\s+/);
-  
+
   // Max 15 words total
   if (words.length > 15) return false;
-  
+
   // Average word length < 8 chars (simpler words are shorter)
   const avgWordLength = words.reduce((sum, w) => sum + w.length, 0) / words.length;
   if (avgWordLength > 8) return false;
-  
+
   // Max 2 very long words (>10 chars)
   const longWords = words.filter(w => w.length > 10).length;
   if (longWords > 2) return false;
-  
+
   return true;
 }
 ```
@@ -64,6 +63,7 @@ private isSimpleEnough(sentence: string): boolean {
 ### 4. **Filtering Criteria**
 
 Sentences are rejected if they:
+
 - ❌ Have more than 15 words
 - ❌ Have average word length > 8 characters
 - ❌ Have more than 2 words longer than 10 characters
@@ -74,6 +74,7 @@ Sentences are rejected if they:
 ### 5. **Debug Logging**
 
 Now logs rejected complex sentences:
+
 ```
 AI Hint: Rejecting complex sentence: Getuigen mishandelen en...
 ```
@@ -81,12 +82,14 @@ AI Hint: Rejecting complex sentence: Getuigen mishandelen en...
 ## Expected Results
 
 ### Before ❌
+
 ```
 "Getuigen mishandelen en dossiers meenemen zonder bevelschrift"
 (17+ chars avg, legal terms, 8 words)
 ```
 
 ### After ✅
+
 ```
 "Ik ga naar de winkel"
 (3-4 chars avg, simple words, 5 words)
@@ -109,8 +112,6 @@ AI Hint: Rejecting complex sentence: Getuigen mishandelen en...
 ## Result
 
 AI hints now provide **appropriate A2-level examples** that actually help beginners learn! 🎓✨
-
-
 
 
 

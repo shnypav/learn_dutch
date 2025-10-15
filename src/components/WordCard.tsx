@@ -1,7 +1,7 @@
-import type { WordPair, LearningMode, FeedbackType } from '../types';
-import { useRef, useEffect, useState } from 'react';
-import AIHintPopup from './AIHintPopup';
-import { useAIHint } from '../contexts/AIHintContext';
+import type { WordPair, LearningMode, FeedbackType } from "../types";
+import { useRef, useEffect, useState } from "react";
+import AIHintPopup from "./AIHintPopup";
+import { useAIHint } from "../contexts/AIHintContext";
 
 interface WordCardProps {
   word: WordPair | null;
@@ -11,11 +11,17 @@ interface WordCardProps {
   onMarkAsKnown?: (word: WordPair) => void;
 }
 
-const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer, onMarkAsKnown }) => {
+const WordCard: React.FC<WordCardProps> = ({
+  word,
+  mode,
+  feedback,
+  correctAnswer,
+  onMarkAsKnown,
+}) => {
   const textRef = useRef<HTMLHeadingElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [fontSize, setFontSize] = useState('text-4xl md:text-5xl');
-  
+  const [fontSize, setFontSize] = useState("text-4xl md:text-5xl");
+
   // AI hint popup state
   const [showHintPopup, setShowHintPopup] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -33,13 +39,13 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
 
     // Font size options from largest to smallest
     const fontSizes = [
-      { class: 'text-4xl md:text-5xl', size: 48 },
-      { class: 'text-3xl md:text-4xl', size: 36 },
-      { class: 'text-2xl md:text-3xl', size: 24 },
-      { class: 'text-xl md:text-2xl', size: 20 },
-      { class: 'text-lg md:text-xl', size: 18 },
-      { class: 'text-base md:text-lg', size: 16 },
-      { class: 'text-sm md:text-base', size: 14 }
+      { class: "text-4xl md:text-5xl", size: 48 },
+      { class: "text-3xl md:text-4xl", size: 36 },
+      { class: "text-2xl md:text-3xl", size: 24 },
+      { class: "text-xl md:text-2xl", size: 20 },
+      { class: "text-lg md:text-xl", size: 18 },
+      { class: "text-base md:text-lg", size: 16 },
+      { class: "text-sm md:text-base", size: 14 },
     ];
 
     // Test each font size until text fits
@@ -56,18 +62,18 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
     }
 
     // If even the smallest size doesn't fit, use the smallest anyway
-    setFontSize('text-sm md:text-base');
+    setFontSize("text-sm md:text-base");
   };
 
   useEffect(() => {
     if (word) {
       // Small delay to ensure DOM is ready
       setTimeout(() => adjustFontSize(), 10);
-      
+
       // Preload AI hint when new word is shown (not during feedback)
       if (feedback === null && isConfigured) {
-        const sourceWord = mode === 'nl-en' ? word.dutch : word.english;
-        const translationWord = mode === 'nl-en' ? word.english : word.dutch;
+        const sourceWord = mode === "nl-en" ? word.dutch : word.english;
+        const translationWord = mode === "nl-en" ? word.english : word.dutch;
         preloadHint(sourceWord, translationWord, mode);
       }
     }
@@ -89,30 +95,34 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
   }
 
   // Show correct answer when feedback is present and correctAnswer is available
-  const displayWord = (feedback === 'incorrect' || feedback === 'correct') && correctAnswer 
-    ? correctAnswer 
-    : mode === 'nl-en' ? word?.dutch : word?.english;
-  
-  const sourceLanguage = mode === 'nl-en' ? 'Dutch' : 'English';
-  const targetLanguage = mode === 'nl-en' ? 'English' : 'Dutch';
-  
+  const displayWord =
+    (feedback === "incorrect" || feedback === "correct") && correctAnswer
+      ? correctAnswer
+      : mode === "nl-en"
+        ? word?.dutch
+        : word?.english;
+
+  const sourceLanguage = mode === "nl-en" ? "Dutch" : "English";
+  const targetLanguage = mode === "nl-en" ? "English" : "Dutch";
+
   // Show different label when displaying correct answer
-  const cardLabel = (feedback === 'incorrect' || feedback === 'correct') && correctAnswer
-    ? feedback === 'incorrect' 
-      ? `Correct Answer: ${targetLanguage}`
-      : `Translation: ${targetLanguage}`
-    : `${sourceLanguage} → ${targetLanguage}`;
+  const cardLabel =
+    (feedback === "incorrect" || feedback === "correct") && correctAnswer
+      ? feedback === "incorrect"
+        ? `Correct Answer: ${targetLanguage}`
+        : `Translation: ${targetLanguage}`
+      : `${sourceLanguage} → ${targetLanguage}`;
 
   const getFeedbackClasses = (): string => {
-      switch (feedback) {
-        case 'correct':
-          return 'feedback-correct border-green-300 card-bg';
-        case 'incorrect':
-          return 'feedback-incorrect border-red-300 card-bg';
-        default:
-          return 'card-bg border-white border-opacity-20';
-      }
-    };
+    switch (feedback) {
+      case "correct":
+        return "feedback-correct border-green-300 card-bg";
+      case "incorrect":
+        return "feedback-incorrect border-red-300 card-bg";
+      default:
+        return "card-bg border-white border-opacity-20";
+    }
+  };
 
   const handleMarkAsKnown = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (word && onMarkAsKnown) {
@@ -125,7 +135,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
 
   const handleWordHover = (e: React.MouseEvent) => {
     if (!word || feedback !== null) return; // Don't show during feedback
-    
+
     if (!isConfigured) {
       setShowConfigDialog(true);
       return;
@@ -135,7 +145,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
     const rect = e.currentTarget.getBoundingClientRect();
     setMousePosition({
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     });
 
     // Clear any existing timeout
@@ -147,7 +157,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
     const timeout = setTimeout(() => {
       setShowHintPopup(true);
     }, 500); // 500ms delay
-    
+
     setHoverTimeout(timeout);
   };
 
@@ -156,7 +166,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
       const rect = e.currentTarget.getBoundingClientRect();
       setMousePosition({
         x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        y: e.clientY - rect.top,
       });
     }
   };
@@ -167,7 +177,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
       clearTimeout(hoverTimeout);
       setHoverTimeout(null);
     }
-    
+
     // Hide immediately when leaving
     setShowHintPopup(false);
   };
@@ -209,20 +219,20 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
             <span className="absolute -top-2 -right-2 w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
           )}
         </h2>
-        
+
         {/* AI Hint Tooltip - positioned above mouse cursor */}
         {showHintPopup && word && (
-          <div 
+          <div
             className="absolute z-50 pointer-events-none"
             style={{
               left: `${mousePosition.x}px`,
               top: `${mousePosition.y - 40}px`,
-              transform: 'translate(-50%, -100%)'
+              transform: "translate(-50%, -100%)",
             }}
           >
             <AIHintPopup
-              word={mode === 'nl-en' ? word.dutch : word.english}
-              translation={mode === 'nl-en' ? word.english : word.dutch}
+              word={mode === "nl-en" ? word.dutch : word.english}
+              translation={mode === "nl-en" ? word.english : word.dutch}
               mode={mode}
               isVisible={showHintPopup}
               onClose={() => setShowHintPopup(false)}
@@ -230,7 +240,6 @@ const WordCard: React.FC<WordCardProps> = ({ word, mode, feedback, correctAnswer
           </div>
         )}
       </div>
-
 
       {/*<div className="text-secondary-light text-sm">*/}
       {/*  Translate to {targetLanguage}*/}

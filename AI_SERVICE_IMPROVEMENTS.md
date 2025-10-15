@@ -1,11 +1,13 @@
 # AI Hint Service Improvements
 
 ## Overview
+
 Enhanced the Perplexity Search API integration with modern best practices from the official documentation.
 
 ## Changes Implemented
 
 ### 1. **Domain Filtering for Higher Quality Examples** ⚠️ NOT YET AVAILABLE
+
 - Prepared curated lists of authoritative language learning sites for future use
 - **Dutch domains**: vandale.nl, taalunie.org, dutchgrammar.com, learndutch.org, etc.
 - **English domains**: oxfordlearnersdictionaries.com, cambridge.org, merriam-webster.com, etc.
@@ -13,17 +15,20 @@ Enhanced the Perplexity Search API integration with modern best practices from t
 - Will automatically work once Perplexity enables this feature
 
 ### 2. **Recency Filtering** ⚠️ NOT YET AVAILABLE
+
 - Prepared `search_recency_filter: 'month'` parameter for future use
 - **Note**: Feature is documented but returns 400 error "not yet supported"
 - Waiting for Perplexity to enable this API feature
 
 ### 3. **Enhanced Retry Logic with Exponential Backoff**
+
 - Implemented `withRetry<T>()` method for handling rate limits
 - Exponential backoff: 1s → 2s → 4s delays
 - Added jitter (random delay) to prevent thundering herd
 - Automatically retries up to 3 times on rate limit errors
 
 ### 4. **Improved Sentence Extraction**
+
 - Added quality filters:
   - Length checks (10-200 characters)
   - Noise filtering (removes "cookie", "privacy", "subscribe" sentences)
@@ -32,6 +37,7 @@ Enhanced the Perplexity Search API integration with modern best practices from t
 - Returns top 3 most relevant examples
 
 ### 5. **Better Error Handling**
+
 - Graceful fallbacks at each stage:
   1. Domain-filtered search
   2. Broader search (without domain filter)
@@ -40,6 +46,7 @@ Enhanced the Perplexity Search API integration with modern best practices from t
 - Proper TypeScript error typing with `unknown` type
 
 ### 6. **Code Quality Improvements**
+
 - Fixed unused imports in `App.tsx`, `AIHintPopup.tsx`, and `storage.ts`
 - Added comprehensive JSDoc comments
 - Improved logging for debugging
@@ -61,6 +68,7 @@ Enhanced the Perplexity Search API integration with modern best practices from t
 ## ⚠️ Documentation vs Reality
 
 The Perplexity documentation shows these advanced filters, but the API currently returns:
+
 ```json
 {
   "error": {
