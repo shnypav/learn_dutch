@@ -252,4 +252,9 @@ export class WordManager {
       };
     }
   }
+
+  // Get all words for generating multiple choice options
+  getAllWords(): WordPair[] {
+    return this.words;
+  }
 }

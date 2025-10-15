@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { LearningMode, GameState, UserProgress, SessionStats, ContentType, VerbMode } from './types';
+import type { LearningMode, GameState, UserProgress, SessionStats, ContentType, VerbMode, PracticeMode, WordPair } from './types';
 import { loadCSVData, loadVerbData } from './utils/csvParser';
 import { fuzzyMatch } from './utils/fuzzyMatch';
 import { WordManager } from './utils/wordManager';
@@ -7,11 +7,14 @@ import { VerbManager } from './utils/verbManager';
 import { loadProgress, updateProgress, resetProgress, applyKnownStatusToWords, markWordAsKnown as persistMarkWordAsKnown } from './utils/storage';
 import { useTheme } from './contexts/ThemeContext';
 import type { HintLevel } from './utils/hintGenerator';
+import { generateWordDistractors, generateVerbDistractors, generateMultipleChoiceOptions } from './utils/multipleChoiceGenerator';
 
 // Components
 import WordCard from './components/WordCard';
 import VerbCard from './components/VerbCard';
 import InputField, { type InputFieldRef } from './components/InputField';
+import MultipleChoiceInput from './components/MultipleChoiceInput';
+import PracticeModeSwitcher from './components/PracticeModeSwitcher';
 import ModeToggle from './components/ModeToggle';
 import ContentTypeSwitcher from './components/ContentTypeSwitcher';
 import VerbModeSelector from './components/VerbModeSelector';
@@ -28,6 +31,7 @@ function App() {
     mode: 'nl-en',
     contentType: 'words',
     verbMode: 'random',
+    practiceMode: 'type',
     currentVerbForm: null,
     feedback: null,
     sessionStats: { correct: 0, total: 0, accuracy: 0, streak: 0, hintsUsed: 0, questionsWithHints: 0, averageHintsPerQuestion: 0 },
@@ -37,6 +41,7 @@ function App() {
   
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
   const [currentHintText, setCurrentHintText] = useState<string>('');
+  const [multipleChoiceOptions, setMultipleChoiceOptions] = useState<string[]>([]);
   const inputFieldRef = useRef<InputFieldRef>(null);
 
   const [userProgress, setUserProgress] = useState<UserProgress>(loadProgress());
@@ -247,6 +252,55 @@ function App() {
     }
     return null;
   }, [gameState.currentWord, gameState.currentVerb, gameState.contentType, gameState.mode, gameState.currentVerbForm, wordManager, verbManager]);
+
+  // Generate multiple choice options when a new question appears
+  useEffect(() => {
+    if (gameState.practiceMode !== 'multiple-choice') {
+      setMultipleChoiceOptions([]);
+      return;
+    }
+
+    if (gameState.contentType === 'words' && gameState.currentWord && wordManager) {
+      const correct = wordManager.getCorrectAnswer(gameState.currentWord, gameState.mode);
+      const distractors = generateWordDistractors(
+        gameState.currentWord,
+        wordManager.getAllWords(),
+        gameState.mode,
+        correct
+      );
+      const options = generateMultipleChoiceOptions(correct, distractors);
+      setMultipleChoiceOptions(options);
+    } else if (gameState.contentType === 'verbs' && gameState.currentVerb && gameState.currentVerbForm && verbManager) {
+      const correct = verbManager.getCorrectAnswer(gameState.currentVerb, gameState.currentVerbForm);
+      const distractors = generateVerbDistractors(
+        gameState.currentVerb,
+        verbManager.getAllVerbs(),
+        gameState.currentVerbForm,
+        correct
+      );
+      const options = generateMultipleChoiceOptions(correct, distractors);
+      setMultipleChoiceOptions(options);
+    }
+  }, [gameState.currentWord, gameState.currentVerb, gameState.currentVerbForm, gameState.mode, gameState.contentType, gameState.practiceMode, wordManager, verbManager]);
+
+  // Handle practice mode change
+  const handlePracticeModeChange = useCallback((newPracticeMode: PracticeMode) => {
+    setGameState(prev => ({
+      ...prev,
+      practiceMode: newPracticeMode,
+      feedback: null
+    }));
+    setCorrectAnswer(null);
+    setCurrentHintText('');
+    
+    // Reset hint state in managers
+    if (wordManager) {
+      wordManager.resetHintState();
+    }
+    if (verbManager) {
+      verbManager.resetHintState();
+    }
+  }, [wordManager, verbManager]);
 
   // Handle mode change
   const handleModeChange = useCallback((newMode: LearningMode) => {
@@ -467,6 +521,11 @@ function App() {
                   onContentTypeChange={handleContentTypeChange}
                   disabled={gameState.feedback !== null}
                 />
+                <PracticeModeSwitcher
+                  practiceMode={gameState.practiceMode}
+                  onPracticeModeChange={handlePracticeModeChange}
+                  disabled={gameState.feedback !== null}
+                />
                 {gameState.contentType === 'words' && (
                   <ModeToggle
                     mode={gameState.mode}
@@ -504,20 +563,30 @@ function App() {
                 )}
 
                 <div className="flex flex-col items-center space-y-4">
-                  <InputField
-                    ref={inputFieldRef}
-                    onSubmit={handleAnswerSubmit}
-                    feedback={gameState.feedback}
-                    disabled={gameState.feedback !== null}
-                    placeholder={gameState.contentType === 'words'
-                      ? `Type ${gameState.mode === 'nl-en' ? 'English' : 'Dutch'} translation...`
-                      : `Type the ${gameState.currentVerbForm && verbManager ? verbManager.getVerbFormLabel(gameState.currentVerbForm).toLowerCase() : 'verb form'}...`
-                    }
-                    hintText={currentHintText}
-                    correctAnswer={getCurrentCorrectAnswer() || undefined}
-                    onHintUsed={handleHintUsed}
-                    onShowAnswer={handleShowAnswer}
-                  />
+                  {gameState.practiceMode === 'type' ? (
+                    <InputField
+                      ref={inputFieldRef}
+                      onSubmit={handleAnswerSubmit}
+                      feedback={gameState.feedback}
+                      disabled={gameState.feedback !== null}
+                      placeholder={gameState.contentType === 'words'
+                        ? `Type ${gameState.mode === 'nl-en' ? 'English' : 'Dutch'} translation...`
+                        : `Type the ${gameState.currentVerbForm && verbManager ? verbManager.getVerbFormLabel(gameState.currentVerbForm).toLowerCase() : 'verb form'}...`
+                      }
+                      hintText={currentHintText}
+                      correctAnswer={getCurrentCorrectAnswer() || undefined}
+                      onHintUsed={handleHintUsed}
+                      onShowAnswer={handleShowAnswer}
+                    />
+                  ) : (
+                    <MultipleChoiceInput
+                      options={multipleChoiceOptions}
+                      correctAnswer={getCurrentCorrectAnswer() || ''}
+                      onSubmit={handleAnswerSubmit}
+                      feedback={gameState.feedback}
+                      disabled={gameState.feedback !== null}
+                    />
+                  )}
                 </div>
               </div>
 
