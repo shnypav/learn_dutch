@@ -63,6 +63,8 @@ export type ContentType = "words" | "verbs";
 
 export type FeedbackType = "correct" | "incorrect" | null;
 
+export type PracticeFormat = "input" | "multiple-choice";
+
 export type GameState = {
   currentWord: WordPair | null;
   currentVerb: VerbPair | null;
@@ -74,6 +76,8 @@ export type GameState = {
   sessionStats: SessionStats;
   isLoading: boolean;
   error: string | null;
+  practiceFormat: PracticeFormat;
+  multipleChoiceOptions?: string[];
 };
 
 export type Theme = "default" | "duo";

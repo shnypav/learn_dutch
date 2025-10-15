@@ -269,6 +269,3 @@ Browser → Netlify Function → Perplexity API
 - [Netlify Functions](https://docs.netlify.com/functions/overview/)
 - [Vercel Serverless Functions](https://vercel.com/docs/functions)
 - [Vite Proxy Config](https://vitejs.dev/config/server-options.html#server-proxy)
-
-
-

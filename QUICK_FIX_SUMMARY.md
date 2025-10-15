@@ -75,6 +75,3 @@ Choose one:
 3. **Express Backend** - More control, more maintenance
 
 All details in `CORS_AND_PRODUCTION.md`!
-
-
-

@@ -356,4 +356,9 @@ export class WordManager {
       };
     }
   }
+
+  // Multiple choice methods
+  getAllWords(): WordPair[] {
+    return this.words;
+  }
 }

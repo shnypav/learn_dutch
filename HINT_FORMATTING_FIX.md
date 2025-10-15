@@ -92,6 +92,3 @@ const cleanedSentence = this.extractPureExample(generatedSentence);
 ## Result
 
 Users now see **only the clean example sentence** without any markdown formatting, headers, or labels! 🎉
-
-
-

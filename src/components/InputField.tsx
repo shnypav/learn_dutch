@@ -5,12 +5,13 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import type { FeedbackType } from "../types";
+import type { FeedbackType, PracticeFormat } from "../types";
 import {
   getInitialHintLevel,
   getNextHintLevel,
   type HintLevel,
 } from "../utils/hintGenerator";
+import MultipleChoiceInput from "./MultipleChoiceInput";
 
 interface InputFieldProps {
   onSubmit: (answer: string) => void;
@@ -22,6 +23,9 @@ interface InputFieldProps {
   correctAnswer?: string;
   onHintUsed?: (hintLevel: HintLevel) => void;
   onShowAnswer?: () => void;
+  // Multiple choice props
+  practiceFormat?: PracticeFormat;
+  multipleChoiceOptions?: string[];
 }
 
 export interface InputFieldRef {
@@ -39,6 +43,8 @@ const InputField = forwardRef<InputFieldRef, InputFieldProps>(
       correctAnswer,
       onHintUsed,
       onShowAnswer,
+      practiceFormat = "input",
+      multipleChoiceOptions = [],
     },
     ref,
   ) => {
@@ -178,6 +184,25 @@ const InputField = forwardRef<InputFieldRef, InputFieldProps>(
       return "btn-primary border-transparent hover:border-white hover:border-opacity-30";
     };
 
+    // Render multiple choice mode
+    if (
+      practiceFormat === "multiple-choice" &&
+      multipleChoiceOptions.length > 0
+    ) {
+      return (
+        <div className="w-full max-w-2xl">
+          <MultipleChoiceInput
+            options={multipleChoiceOptions}
+            correctAnswer={correctAnswer || ""}
+            onSubmit={onSubmit}
+            disabled={disabled}
+            feedback={feedback}
+          />
+        </div>
+      );
+    }
+
+    // Render text input mode
     return (
       <form onSubmit={handleSubmit} className="w-full max-w-md">
         <div className="relative group">

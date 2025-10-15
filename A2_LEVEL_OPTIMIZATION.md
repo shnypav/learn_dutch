@@ -112,6 +112,3 @@ AI Hint: Rejecting complex sentence: Getuigen mishandelen en...
 ## Result
 
 AI hints now provide **appropriate A2-level examples** that actually help beginners learn! 🎓✨
-
-
-

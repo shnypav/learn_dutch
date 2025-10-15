@@ -4,7 +4,7 @@
 
 🌟 High Priority (8-10/10)
 
-- [ ] Spaced Repetition System (SRS) - 10/10
+- [x] Spaced Repetition System (SRS) - 10/10
       Implement algorithm (SM-2/Anki-style) to schedule reviews based on performance. Cards appear when optimal for memory
       retention. Critical for long-term learning effectiveness.
 
@@ -12,7 +12,7 @@
       Add text-to-speech for Dutch words/verbs with native accent. Helps with speaking/listening skills - essential for
       language learning beyond written practice.
 
-- [ ] Multiple Choice Mode - 8/10
+- [x] Multiple Choice Mode - 8/10
       Alternative practice format with 4 answer options. Lower barrier for beginners, faster practice sessions, good for
       mobile usage.
 

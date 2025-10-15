@@ -360,4 +360,9 @@ export class VerbManager {
       };
     }
   }
+
+  // Multiple choice methods
+  getAllVerbs(): VerbPair[] {
+    return this.verbs;
+  }
 }

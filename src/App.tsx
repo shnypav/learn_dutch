@@ -7,11 +7,16 @@ import type {
   ContentType,
   VerbMode,
   WordPair,
+  PracticeFormat,
 } from "./types";
 import { loadCSVData, loadVerbData } from "./utils/csvParser";
 import { fuzzyMatch } from "./utils/fuzzyMatch";
 import { WordManager } from "./utils/wordManager";
 import { VerbManager } from "./utils/verbManager";
+import {
+  generateWordMultipleChoiceOptions,
+  generateVerbMultipleChoiceOptions,
+} from "./utils/multipleChoiceGenerator";
 import {
   loadProgress,
   updateProgress,
@@ -44,6 +49,7 @@ import ThemeChooser from "./components/ThemeChooser";
 import AIHintConfigDialog from "./components/AIHintConfigDialog";
 import SRSDashboard from "./components/SRSDashboard";
 import SRSSettingsDialog from "./components/SRSSettingsDialog";
+import PracticeFormatSwitcher from "./components/PracticeFormatSwitcher";
 
 function App() {
   const { theme, setTheme } = useTheme();
@@ -66,6 +72,8 @@ function App() {
     },
     isLoading: true,
     error: null,
+    practiceFormat: "input",
+    multipleChoiceOptions: [],
   });
 
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
@@ -141,10 +149,22 @@ function App() {
         setVerbManager(verbMgr);
 
         const firstWord = wordMgr.getCurrentWord();
+
+        // Generate initial MC options if in MC mode
+        let initialMCOptions: string[] = [];
+        if (firstWord) {
+          initialMCOptions = generateWordMultipleChoiceOptions(
+            wordMgr.getAllWords(),
+            firstWord,
+            "nl-en",
+          );
+        }
+
         setGameState((prev) => ({
           ...prev,
           currentWord: firstWord,
           isLoading: false,
+          multipleChoiceOptions: initialMCOptions,
         }));
       } catch (error) {
         console.error("Failed to initialize app:", error);
@@ -181,7 +201,11 @@ function App() {
           gameState.currentWord,
           gameState.mode,
         );
-        const isCorrect = fuzzyMatch(userAnswer, correctAnswer);
+        // For multiple choice, no fuzzy matching needed (exact match)
+        const isCorrect =
+          gameState.practiceFormat === "multiple-choice"
+            ? userAnswer === correctAnswer
+            : fuzzyMatch(userAnswer, correctAnswer);
 
         // Get hint statistics from manager
         const hintStats = wordManager.getHintUsageStats();
@@ -243,10 +267,22 @@ function App() {
         // Move to next word after feedback delay
         setTimeout(() => {
           const nextWord = wordManager.getNextWordWithHintReset();
+
+          // Generate multiple choice options if in MC mode
+          let mcOptions: string[] = [];
+          if (gameState.practiceFormat === "multiple-choice" && nextWord) {
+            mcOptions = generateWordMultipleChoiceOptions(
+              wordManager.getAllWords(),
+              nextWord,
+              gameState.mode,
+            );
+          }
+
           setGameState((prev) => ({
             ...prev,
             currentWord: nextWord,
             feedback: null,
+            multipleChoiceOptions: mcOptions,
           }));
           // Clear correct answer and hint text when moving to next word
           setCorrectAnswer(null);
@@ -264,7 +300,11 @@ function App() {
           gameState.currentVerb,
           gameState.currentVerbForm,
         );
-        const isCorrect = fuzzyMatch(userAnswer, correctAnswer);
+        // For multiple choice, no fuzzy matching needed (exact match)
+        const isCorrect =
+          gameState.practiceFormat === "multiple-choice"
+            ? userAnswer === correctAnswer
+            : fuzzyMatch(userAnswer, correctAnswer);
 
         // Get hint statistics from manager
         const hintStats = verbManager.getHintUsageStats();
@@ -329,11 +369,23 @@ function App() {
           const nextVerbForm = verbManager.getVerbFormByMode(
             gameState.verbMode,
           );
+
+          // Generate multiple choice options if in MC mode
+          let mcOptions: string[] = [];
+          if (gameState.practiceFormat === "multiple-choice" && nextVerb) {
+            mcOptions = generateVerbMultipleChoiceOptions(
+              verbManager.getAllVerbs(),
+              nextVerb,
+              nextVerbForm,
+            );
+          }
+
           setGameState((prev) => ({
             ...prev,
             currentVerb: nextVerb,
             currentVerbForm: nextVerbForm,
             feedback: null,
+            multipleChoiceOptions: mcOptions,
           }));
           // Clear correct answer and hint text when moving to next verb
           setCorrectAnswer(null);
@@ -467,6 +519,17 @@ function App() {
       if (newContentType === "words") {
         if (!wordManager) return;
         const firstWord = wordManager.getCurrentWord();
+
+        // Generate MC options if in MC mode
+        let mcOptions: string[] = [];
+        if (gameState.practiceFormat === "multiple-choice" && firstWord) {
+          mcOptions = generateWordMultipleChoiceOptions(
+            wordManager.getAllWords(),
+            firstWord,
+            gameState.mode,
+          );
+        }
+
         setGameState((prev) => ({
           ...prev,
           contentType: newContentType,
@@ -474,11 +537,23 @@ function App() {
           currentVerb: null,
           currentVerbForm: null,
           feedback: null,
+          multipleChoiceOptions: mcOptions,
         }));
       } else if (newContentType === "verbs") {
         if (!verbManager) return;
         const firstVerb = verbManager.getCurrentVerb();
         const firstVerbForm = verbManager.getVerbFormByMode(gameState.verbMode);
+
+        // Generate MC options if in MC mode
+        let mcOptions: string[] = [];
+        if (gameState.practiceFormat === "multiple-choice" && firstVerb) {
+          mcOptions = generateVerbMultipleChoiceOptions(
+            verbManager.getAllVerbs(),
+            firstVerb,
+            firstVerbForm,
+          );
+        }
+
         setGameState((prev) => ({
           ...prev,
           contentType: newContentType,
@@ -486,6 +561,7 @@ function App() {
           currentVerb: firstVerb,
           currentVerbForm: firstVerbForm,
           feedback: null,
+          multipleChoiceOptions: mcOptions,
         }));
       }
 
@@ -501,7 +577,13 @@ function App() {
         verbManager.resetHintState();
       }
     },
-    [wordManager, verbManager, gameState.verbMode],
+    [
+      wordManager,
+      verbManager,
+      gameState.verbMode,
+      gameState.practiceFormat,
+      gameState.mode,
+    ],
   );
 
   // Handle verb mode change
@@ -518,6 +600,56 @@ function App() {
       }));
     },
     [verbManager, gameState.contentType],
+  );
+
+  // Handle practice format change
+  const handlePracticeFormatChange = useCallback(
+    (newFormat: PracticeFormat) => {
+      // Generate MC options for current question if switching to MC mode
+      let mcOptions: string[] = [];
+      if (newFormat === "multiple-choice") {
+        if (
+          gameState.contentType === "words" &&
+          gameState.currentWord &&
+          wordManager
+        ) {
+          mcOptions = generateWordMultipleChoiceOptions(
+            wordManager.getAllWords(),
+            gameState.currentWord,
+            gameState.mode,
+          );
+        } else if (
+          gameState.contentType === "verbs" &&
+          gameState.currentVerb &&
+          gameState.currentVerbForm &&
+          verbManager
+        ) {
+          mcOptions = generateVerbMultipleChoiceOptions(
+            verbManager.getAllVerbs(),
+            gameState.currentVerb,
+            gameState.currentVerbForm,
+          );
+        }
+      }
+
+      setGameState((prev) => ({
+        ...prev,
+        practiceFormat: newFormat,
+        multipleChoiceOptions: mcOptions,
+        feedback: null,
+      }));
+      setCorrectAnswer(null);
+      setCurrentHintText("");
+    },
+    [
+      gameState.contentType,
+      gameState.currentWord,
+      gameState.currentVerb,
+      gameState.currentVerbForm,
+      gameState.mode,
+      wordManager,
+      verbManager,
+    ],
   );
 
   // Handle progress reset
@@ -729,6 +861,11 @@ function App() {
                   onContentTypeChange={handleContentTypeChange}
                   disabled={gameState.feedback !== null}
                 />
+                <PracticeFormatSwitcher
+                  practiceFormat={gameState.practiceFormat}
+                  onFormatChange={handlePracticeFormatChange}
+                  disabled={gameState.feedback !== null}
+                />
                 {gameState.contentType === "words" && (
                   <ModeToggle
                     mode={gameState.mode}
@@ -791,6 +928,8 @@ function App() {
                     correctAnswer={getCurrentCorrectAnswer() || undefined}
                     onHintUsed={handleHintUsed}
                     onShowAnswer={handleShowAnswer}
+                    practiceFormat={gameState.practiceFormat}
+                    multipleChoiceOptions={gameState.multipleChoiceOptions}
                   />
                 </div>
               </div>
