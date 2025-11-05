@@ -32,7 +32,7 @@ export interface CustomThemeColors extends ThemeColors {
 export const DEFAULT_CUSTOM_THEME: CustomThemeColors = {
   customId: "custom-theme-v1",
   name: "Custom",
-  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  background: "linear-gradient(135deg, #64748b 0%, #475569 100%)",
   cardBg: "rgba(255, 255, 255, 0.1)",
   textPrimary: "#ffffff",
   textSecondary: "rgba(255, 255, 255, 0.8)",
@@ -57,7 +57,7 @@ export const DEFAULT_CUSTOM_THEME: CustomThemeColors = {
 export const themes: Record<Exclude<Theme, "custom">, ThemeColors> = {
   default: {
     name: "Default",
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    background: "linear-gradient(135deg, #64748b 0%, #475569 100%)",
     cardBg: "rgba(255, 255, 255, 0.1)",
     textPrimary: "#ffffff",
     textSecondary: "rgba(255, 255, 255, 0.8)",

@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-gradient: linear-gradient(135deg, #64748b 0%, #475569 100%);
   --card-bg: rgba(255, 255, 255, 0.1);
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.8);
