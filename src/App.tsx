@@ -47,6 +47,7 @@ import ProgressIndicator from "./components/ProgressIndicator";
 import StatsDashboard from "./components/StatsDashboard";
 import ThemeChooser from "./components/ThemeChooser";
 import AIHintConfigDialog from "./components/AIHintConfigDialog";
+import ConfettiEffect from "./components/ConfettiEffect";
 import SRSDashboard from "./components/SRSDashboard";
 import SRSSettingsDialog from "./components/SRSSettingsDialog";
 import PracticeFormatSwitcher from "./components/PracticeFormatSwitcher";
@@ -259,6 +260,7 @@ function App() {
           sessionStats: newSessionStats,
         }));
 
+
         // Store correct answer for display if the answer was wrong
         if (!isCorrect) {
           setCorrectAnswer(correctAnswer);
@@ -358,6 +360,7 @@ function App() {
           sessionStats: newSessionStats,
         }));
 
+
         // Store correct answer for display if the answer was wrong
         if (!isCorrect) {
           setCorrectAnswer(correctAnswer);
@@ -401,6 +404,7 @@ function App() {
       gameState.verbMode,
       gameState.currentVerbForm,
       gameState.sessionStats,
+      gameState.practiceFormat,
       wordManager,
       verbManager,
       userProgress,
@@ -963,6 +967,12 @@ function App() {
         onClose={() => setShowSRSSettings(false)}
         dailyNewCardLimit={srsConfig.dailyNewCardLimit}
         onSave={handleSRSSettingsSave}
+      />
+
+      {/* Confetti Effect */}
+      <ConfettiEffect
+        trigger={gameState.feedback === "correct"}
+        onComplete={() => {}}
       />
     </div>
   );
