@@ -26,6 +26,9 @@ interface InputFieldProps {
   // Multiple choice props
   practiceFormat?: PracticeFormat;
   multipleChoiceOptions?: string[];
+  // Control value lifecycle
+  preserveSubmittedOnFeedback?: boolean;
+  questionKey?: string;
 }
 
 export interface InputFieldRef {
@@ -45,6 +48,8 @@ const InputField = forwardRef<InputFieldRef, InputFieldProps>(
       onShowAnswer,
       practiceFormat = "input",
       multipleChoiceOptions = [],
+      preserveSubmittedOnFeedback = false,
+      questionKey,
     },
     ref,
   ) => {
@@ -82,6 +87,10 @@ const InputField = forwardRef<InputFieldRef, InputFieldProps>(
     useEffect(() => {
       // Clear input after feedback is shown
       if (feedback !== null) {
+        if (preserveSubmittedOnFeedback) {
+          return;
+        }
+
         const timer = setTimeout(() => {
           setValue("");
           setSubmittedAnswer("");
@@ -95,7 +104,13 @@ const InputField = forwardRef<InputFieldRef, InputFieldProps>(
         // Clear submitted answer when feedback resets
         setSubmittedAnswer("");
       }
-    }, [feedback, disabled]);
+    }, [feedback, disabled, preserveSubmittedOnFeedback]);
+
+    // Reset input when the question changes
+    useEffect(() => {
+      setValue("");
+      setSubmittedAnswer("");
+    }, [questionKey]);
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -205,91 +220,90 @@ const InputField = forwardRef<InputFieldRef, InputFieldProps>(
     // Render text input mode
     return (
       <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <div className="relative group">
-          {/* Screen reader hint text announcement */}
-          {hintText && (
-            <div
-              id="hint-text-announcement"
-              className="sr-only"
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              Hint: {hintText}
-            </div>
-          )}
+        {/* Screen reader hint text announcement */}
+        {hintText && (
+          <div
+            id="hint-text-announcement"
+            className="sr-only"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            Hint: {hintText}
+          </div>
+        )}
 
-          <input
-            ref={inputRef}
-            type="text"
-            value={
-              feedback !== null && submittedAnswer ? submittedAnswer : value
-            }
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={disabled}
-            placeholder={feedback !== null ? "" : getPlaceholderText()}
-            className={`
-            w-full pl-4 pr-4 py-4 rounded-xl text-lg font-medium border
-            focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30
-            transition-all duration-300 placeholder:text-base
-            ${getFeedbackClasses()}
-            ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-opacity-20"}
-          `}
-            autoComplete="off"
-            spellCheck={false}
-            aria-label="Answer input field"
-            aria-describedby={hintText ? "hint-text-announcement" : undefined}
-            aria-invalid={feedback === "incorrect" ? "true" : "false"}
-            role="textbox"
-          />
+        <div className="space-y-3">
+          <div className="relative group">
+            <input
+              ref={inputRef}
+              type="text"
+              value={
+                feedback !== null && submittedAnswer ? submittedAnswer : value
+              }
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={disabled}
+              placeholder={feedback !== null ? "" : getPlaceholderText()}
+              className={`
+              w-full pl-4 pr-4 py-4 rounded-xl text-lg font-medium border
+              focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30
+              transition-all duration-300 placeholder:text-base
+              ${getFeedbackClasses()}
+              ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-opacity-20"}
+            `}
+              autoComplete="off"
+              spellCheck={false}
+              aria-label="Answer input field"
+              aria-describedby={hintText ? "hint-text-announcement" : undefined}
+              aria-invalid={feedback === "incorrect" ? "true" : "false"}
+              role="textbox"
+            />
 
-          {value && !disabled && (
+            {!value &&
+              !disabled &&
+              correctAnswer &&
+              correctAnswer.trim().length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleHintClick}
+                  disabled={disabled || isShowAnswer}
+                  className={`
+                absolute right-2 top-1/2 transform -translate-y-1/2
+                rounded-lg px-3 py-2 font-medium text-sm
+                transition-all duration-200 border
+                opacity-0 group-hover:opacity-100
+                ${getHintButtonVariant()}
+                ${disabled || isShowAnswer ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-105"}
+                shadow-lg hover:shadow-xl
+              `}
+                  title={
+                    hintLevel === 4
+                      ? "Show the complete answer"
+                      : `Get hint level ${hintLevel}`
+                  }
+                  aria-label={
+                    hintLevel === 4
+                      ? "Show the complete answer"
+                      : `Get hint level ${hintLevel} for current question`
+                  }
+                  tabIndex={disabled || isShowAnswer ? -1 : 0}
+                >
+                  {getHintButtonText()}
+                </button>
+              )}
+          </div>
+
+          <div className="flex justify-end">
             <button
               type="submit"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2
-                     bg-blue-600 hover:bg-blue-700
-                     rounded-lg px-3 py-2 text-white font-medium text-sm
-                     transition-all duration-200 hover:scale-105 border border-blue-500
-                     shadow-lg hover:shadow-xl"
+              className="px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-blue-600 text-white border-2 border-blue-500 hover:bg-blue-700 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
               aria-label="Submit answer"
-              tabIndex={0}
+              tabIndex={disabled ? -1 : 0}
+              disabled={disabled || !value.trim()}
             >
               Submit ↵
             </button>
-          )}
-
-          {!value &&
-            !disabled &&
-            correctAnswer &&
-            correctAnswer.trim().length > 0 && (
-              <button
-                type="button"
-                onClick={handleHintClick}
-                disabled={disabled || isShowAnswer}
-                className={`
-              absolute right-2 top-1/2 transform -translate-y-1/2
-              rounded-lg px-3 py-2 font-medium text-sm
-              transition-all duration-200 border
-              opacity-0 group-hover:opacity-100
-              ${getHintButtonVariant()}
-              ${disabled || isShowAnswer ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-105"}
-              shadow-lg hover:shadow-xl
-            `}
-                title={
-                  hintLevel === 4
-                    ? "Show the complete answer"
-                    : `Get hint level ${hintLevel}`
-                }
-                aria-label={
-                  hintLevel === 4
-                    ? "Show the complete answer"
-                    : `Get hint level ${hintLevel} for current question`
-                }
-                tabIndex={disabled || isShowAnswer ? -1 : 0}
-              >
-                {getHintButtonText()}
-              </button>
-            )}
+          </div>
         </div>
       </form>
     );

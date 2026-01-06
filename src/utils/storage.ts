@@ -1,10 +1,11 @@
-import type { UserProgress, WordPair, VerbPair } from "../types";
+import type { UserProgress, WordPair, VerbPair, SentencePair } from "../types";
 import type { SRSCardData } from "../types/srs";
 
 const STORAGE_KEY = "dutch-learning-progress";
 const KNOWN_WORDS_KEY = "dutch-learning-known-words";
 const SRS_WORDS_KEY = "dutch-learning-srs-words";
 const SRS_VERBS_KEY = "dutch-learning-srs-verbs";
+const SRS_SENTENCES_KEY = "dutch-learning-srs-sentences";
 const SRS_CONFIG_KEY = "dutch-learning-srs-config";
 
 const defaultProgress: UserProgress = {
@@ -390,4 +391,73 @@ export const resetDailySRSStats = (progress: UserProgress): UserProgress => {
   }
 
   return progress;
+};
+
+// ============================================================================
+// Sentence SRS Data Storage Functions
+// ============================================================================
+
+/**
+ * Create a unique key for a sentence card
+ */
+const getSentenceKey = (sentence: SentencePair): string => {
+  return sentence.id;
+};
+
+/**
+ * Load SRS data for sentences from localStorage
+ */
+export const loadSentenceSRSData = (): Map<string, SRSCardData> => {
+  try {
+    const saved = localStorage.getItem(SRS_SENTENCES_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      return new Map(Object.entries(data));
+    }
+  } catch (error) {
+    console.error("Error loading sentence SRS data:", error);
+  }
+  return new Map();
+};
+
+/**
+ * Save SRS data for sentences to localStorage
+ */
+export const saveSentenceSRSData = (srsData: Map<string, SRSCardData>): void => {
+  try {
+    const dataObject = Object.fromEntries(srsData);
+    localStorage.setItem(SRS_SENTENCES_KEY, JSON.stringify(dataObject));
+  } catch (error) {
+    console.error("Error saving sentence SRS data:", error);
+  }
+};
+
+/**
+ * Update SRS data for a specific sentence
+ */
+export const updateSentenceSRS = (
+  sentence: SentencePair,
+  srsData: SRSCardData
+): void => {
+  const allData = loadSentenceSRSData();
+  const key = getSentenceKey(sentence);
+  allData.set(key, srsData);
+  saveSentenceSRSData(allData);
+};
+
+/**
+ * Apply SRS data from storage to sentences
+ */
+export const applySentenceSRSData = (
+  sentences: SentencePair[]
+): SentencePair[] => {
+  const srsData = loadSentenceSRSData();
+  return sentences.map((sentence) => {
+    const key = getSentenceKey(sentence);
+    const data = srsData.get(key);
+    if (data) {
+      return { ...sentence, srsData: data };
+    }
+    return sentence;
+  });
 };

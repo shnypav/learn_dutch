@@ -6,6 +6,14 @@ A comprehensive, AI-powered Dutch language learning platform with vocabulary and
 
 ## 🎉 Recently Added
 
+### **Sentence Practice Mode** 📝
+- **Scrambled Construction**: Build full Dutch sentences from word banks (with distractors) for translation practice
+- **Two Formats**: Construct via word bank drag/click or type the full sentence directly
+- **Fuzzy Acceptance**: Minor typos and near-miss words are accepted and highlighted, including pronoun variants (`we/wij`, `ze/zij`)
+- **Transparent Feedback**: Side-by-side “your answer vs correct” with per-word highlights for quick fixes
+- **Deliberate Flow**: Wrong or fuzzy-correct answers stay on the same card until you click “Next Sentence”
+- **Hint Support**: Progressive hints and AI hover hints carry over to sentences for guided learning
+
 ### **Confetti Celebration Effects** ✨
 - **Visual Rewards**: Animated confetti particles burst when you answer correctly
 - **Multi-burst Animation**: Different angles and velocities for dynamic celebrations

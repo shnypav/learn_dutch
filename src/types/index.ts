@@ -18,6 +18,16 @@ export type VerbPair = {
   srsData?: SRSCardData;
 };
 
+export type SentenceDifficulty = 1 | 2 | 3; // A1, A2, B1
+
+export type SentencePair = {
+  id: string; // Unique identifier for SRS tracking
+  dutch: string; // Full Dutch sentence
+  english: string; // English translation
+  difficulty: SentenceDifficulty;
+  srsData?: SRSCardData;
+};
+
 export type VerbForm =
   | "dutch_infinitive"
   | "imperfectum_single"
@@ -59,7 +69,7 @@ export type SessionStats = {
 
 export type LearningMode = "nl-en" | "en-nl";
 
-export type ContentType = "words" | "verbs";
+export type ContentType = "words" | "verbs" | "sentences";
 
 export type FeedbackType = "correct" | "incorrect" | null;
 
@@ -68,6 +78,8 @@ export type PracticeFormat = "input" | "multiple-choice";
 export type GameState = {
   currentWord: WordPair | null;
   currentVerb: VerbPair | null;
+  currentSentence: SentencePair | null;
+  scrambledWords: string[]; // Scrambled words for sentence construction
   mode: LearningMode;
   contentType: ContentType;
   verbMode: VerbMode;

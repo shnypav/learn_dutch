@@ -1,5 +1,5 @@
 import Papa from "papaparse";
-import type { WordPair, VerbPair } from "../types";
+import type { WordPair, VerbPair, SentencePair, SentenceDifficulty } from "../types";
 
 export const loadCSVData = async (csvPath: string): Promise<WordPair[]> => {
   try {
@@ -91,6 +91,60 @@ export const loadVerbData = async (csvPath: string): Promise<VerbPair[]> => {
     return verbPairs;
   } catch (error) {
     console.error("Error loading verb CSV data:", error);
+    throw error;
+  }
+};
+
+export const loadSentenceData = async (csvPath: string): Promise<SentencePair[]> => {
+  try {
+    const response = await fetch(csvPath);
+    const csvText = await response.text();
+
+    const parsed = Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.toLowerCase().trim(),
+    });
+
+    if (parsed.errors.length > 0) {
+      console.error("CSV parsing errors:", parsed.errors);
+      throw new Error("Failed to parse CSV data");
+    }
+
+    const sentencePairs: SentencePair[] = parsed.data
+      .map((row: any, index: number) => {
+        const difficultyValue = parseInt(row.difficulty?.trim() || "1", 10);
+        const difficulty: SentenceDifficulty =
+          difficultyValue >= 1 && difficultyValue <= 3
+            ? (difficultyValue as SentenceDifficulty)
+            : 1;
+
+        return {
+          id: `sentence-${index}`,
+          dutch: row.dutch?.trim() || "",
+          english: row.english?.trim() || "",
+          difficulty,
+        };
+      })
+      .filter((pair) => pair.dutch && pair.english);
+
+    // Debug: Log first few sentences to check parsing
+    console.log(
+      "First 5 parsed sentences:",
+      sentencePairs.slice(0, 5).map((s) => ({
+        dutch: s.dutch,
+        english: s.english,
+        difficulty: s.difficulty,
+      })),
+    );
+
+    if (sentencePairs.length === 0) {
+      throw new Error("No valid sentence pairs found in CSV");
+    }
+
+    return sentencePairs;
+  } catch (error) {
+    console.error("Error loading sentence CSV data:", error);
     throw error;
   }
 };

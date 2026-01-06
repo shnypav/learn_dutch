@@ -8,11 +8,17 @@ import type {
   VerbMode,
   WordPair,
   PracticeFormat,
+  SentencePair,
 } from "./types";
-import { loadCSVData, loadVerbData } from "./utils/csvParser";
+import { loadCSVData, loadVerbData, loadSentenceData } from "./utils/csvParser";
 import { fuzzyMatch } from "./utils/fuzzyMatch";
 import { WordManager } from "./utils/wordManager";
 import { VerbManager } from "./utils/verbManager";
+import {
+  SentenceManager,
+  evaluateSentenceAnswer,
+  type SentenceTypoDetail,
+} from "./utils/sentenceManager";
 import {
   generateWordMultipleChoiceOptions,
   generateVerbMultipleChoiceOptions,
@@ -24,6 +30,7 @@ import {
   applyKnownStatusToWords,
   applyWordSRSData,
   applyVerbSRSData,
+  applySentenceSRSData,
   loadSRSConfig,
   saveSRSConfig,
   resetDailySRSStats,
@@ -39,6 +46,9 @@ import type { HintLevel } from "./utils/hintGenerator";
 // Components
 import WordCard from "./components/WordCard";
 import VerbCard from "./components/VerbCard";
+import SentenceCard from "./components/SentenceCard";
+import SentenceConstructionInput from "./components/SentenceConstructionInput";
+import SentenceTypoNotice from "./components/SentenceTypoNotice";
 import InputField, { type InputFieldRef } from "./components/InputField";
 import ModeToggle from "./components/ModeToggle";
 import ContentTypeSwitcher from "./components/ContentTypeSwitcher";
@@ -57,6 +67,8 @@ function App() {
   const [gameState, setGameState] = useState<GameState>({
     currentWord: null,
     currentVerb: null,
+    currentSentence: null,
+    scrambledWords: [],
     mode: "nl-en",
     contentType: "words",
     verbMode: "random",
@@ -85,12 +97,21 @@ function App() {
     useState<UserProgress>(loadProgress());
   const [wordManager, setWordManager] = useState<WordManager | null>(null);
   const [verbManager, setVerbManager] = useState<VerbManager | null>(null);
+  const [sentenceManager, setSentenceManager] = useState<SentenceManager | null>(null);
   const [showStats, setShowStats] = useState(false);
   const [showSRSDashboard, setShowSRSDashboard] = useState(false);
   const [showSRSSettings, setShowSRSSettings] = useState(false);
   const [srsConfig, setSRSConfig] = useState(loadSRSConfig());
   const [allWords, setAllWords] = useState<WordPair[]>([]);
   const [allVerbs, setAllVerbs] = useState<any[]>([]);
+  const [allSentences, setAllSentences] = useState<SentencePair[]>([]);
+  const [nonSentencePracticeFormat, setNonSentencePracticeFormat] =
+    useState<PracticeFormat>("input");
+  const [sentenceTypos, setSentenceTypos] =
+    useState<SentenceTypoDetail[] | null>(null);
+  const [lastSentenceAttempt, setLastSentenceAttempt] = useState<string[]>([]);
+  const [sentenceMatchedFuzzy, setSentenceMatchedFuzzy] = useState(false);
+  const nextSentenceButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Initialize the app and load CSV data
   useEffect(() => {
@@ -98,26 +119,31 @@ function App() {
       try {
         setGameState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-        // Load both words and verbs data
-        const [words, verbs] = await Promise.all([
+        // Load words, verbs, and sentences data
+        const [words, verbs, sentences] = await Promise.all([
           loadCSVData("/data/dutch_common_words.csv"),
           loadVerbData("/data/dutch_irregular_verbs.csv"),
+          loadSentenceData("/data/dutch_sentences.csv"),
         ]);
 
         // Apply known status to words from localStorage
         let wordsWithKnownStatus = applyKnownStatusToWords(words);
         let verbsWithSRS = verbs;
+        let sentencesWithSRS = sentences;
 
         // Apply SRS data from localStorage
         wordsWithKnownStatus = applyWordSRSData(wordsWithKnownStatus);
         verbsWithSRS = applyVerbSRSData(verbs);
+        sentencesWithSRS = applySentenceSRSData(sentences);
 
         // Initialize SRS data for cards that don't have it (migration for existing users)
         wordsWithKnownStatus = initializeCardsWithSRS(wordsWithKnownStatus);
         verbsWithSRS = initializeCardsWithSRS(verbsWithSRS);
+        sentencesWithSRS = initializeCardsWithSRS(sentencesWithSRS);
 
         console.log("Loaded words:", wordsWithKnownStatus.length);
         console.log("Loaded verbs:", verbsWithSRS.length);
+        console.log("Loaded sentences:", sentencesWithSRS.length);
         console.log(
           "Words after applying localStorage status:",
           wordsWithKnownStatus.slice(0, 5).map((w) => ({
@@ -130,13 +156,20 @@ function App() {
         // Store all cards for SRS dashboard
         setAllWords(wordsWithKnownStatus);
         setAllVerbs(verbsWithSRS);
+        setAllSentences(sentencesWithSRS);
 
         const wordMgr = new WordManager(wordsWithKnownStatus);
         const verbMgr = new VerbManager(verbsWithSRS);
+        const sentenceMgr = new SentenceManager(sentencesWithSRS);
+
+        // Set distractor words for sentence construction from vocabulary
+        const dutchVocabulary = wordsWithKnownStatus.map((w) => w.dutch);
+        sentenceMgr.setDistractorWords(dutchVocabulary);
 
         // Configure SRS settings
         wordMgr.setSRSConfig(srsConfig);
         verbMgr.setSRSConfig(srsConfig);
+        sentenceMgr.setSRSConfig(srsConfig);
 
         // Reset daily stats if it's a new day
         const updatedProgress = resetDailySRSStats(userProgress);
@@ -145,9 +178,11 @@ function App() {
         // Set new cards seen today count
         wordMgr.setNewCardsSeenToday(updatedProgress.newCardsToday);
         verbMgr.setNewCardsSeenToday(updatedProgress.newCardsToday);
+        sentenceMgr.setNewCardsSeenToday(updatedProgress.newCardsToday);
 
         setWordManager(wordMgr);
         setVerbManager(verbMgr);
+        setSentenceManager(sentenceMgr);
 
         const firstWord = wordMgr.getCurrentWord();
 
@@ -195,6 +230,11 @@ function App() {
   // Handle answer submission
   const handleAnswerSubmit = useCallback(
     (userAnswer: string) => {
+      // Clear sentence-specific feedback when answering any question
+      setSentenceTypos(null);
+      setLastSentenceAttempt([]);
+      setSentenceMatchedFuzzy(false);
+
       if (gameState.contentType === "words") {
         if (!gameState.currentWord || !wordManager) return;
 
@@ -394,11 +434,114 @@ function App() {
           setCorrectAnswer(null);
           setCurrentHintText("");
         }, 1500);
+      } else if (gameState.contentType === "sentences") {
+        if (!gameState.currentSentence || !sentenceManager) return;
+
+        // Parse the user's constructed sentence (words joined by spaces)
+        const constructedWords = userAnswer.split(/\s+/).filter(Boolean);
+        const evaluation = evaluateSentenceAnswer(
+          constructedWords,
+          gameState.currentSentence
+        );
+        const isCorrect = evaluation.isCorrect;
+        setSentenceMatchedFuzzy(evaluation.matchedViaFuzzy);
+        setLastSentenceAttempt(constructedWords);
+        setSentenceTypos(
+          evaluation.matchedViaFuzzy && evaluation.typoDetails.length > 0
+            ? evaluation.typoDetails
+            : null
+        );
+        const correctSentenceAnswer = sentenceManager.getCorrectAnswer(
+          gameState.currentSentence
+        );
+
+        // Get hint statistics from manager
+        const hintStats = sentenceManager.getHintUsageStats();
+        const hintsUsedForCurrentSentence =
+          hintStats.hintsUsedForCurrentSentence.length;
+
+        // Update session stats
+        const newSessionStats = updateSessionStats({
+          correct: gameState.sessionStats.correct + (isCorrect ? 1 : 0),
+          total: gameState.sessionStats.total + 1,
+          streak: isCorrect ? gameState.sessionStats.streak + 1 : 0,
+          accuracy: 0,
+          hintsUsed:
+            gameState.sessionStats.hintsUsed + hintsUsedForCurrentSentence,
+          questionsWithHints:
+            gameState.sessionStats.questionsWithHints +
+            (hintsUsedForCurrentSentence > 0 ? 1 : 0),
+          averageHintsPerQuestion: 0,
+        });
+
+        // Record answer for SRS
+        sentenceManager.recordAnswer(
+          gameState.currentSentence,
+          isCorrect,
+          hintsUsedForCurrentSentence
+        );
+
+        // Update user progress and SRS stats
+        const categoryCounts = getCardCategoryCounts(allSentences);
+        const newProgress = updateProgress(
+          userProgress,
+          isCorrect,
+          newSessionStats.streak,
+          hintsUsedForCurrentSentence
+        );
+        const updatedProgress = {
+          ...newProgress,
+          cardsReviewedToday: newProgress.cardsReviewedToday + 1,
+          newCardsToday: gameState.currentSentence.srsData?.isNew
+            ? newProgress.newCardsToday + 1
+            : newProgress.newCardsToday,
+          matureCards: categoryCounts.mature,
+          youngCards: categoryCounts.young,
+          learningCards: categoryCounts.learning,
+        };
+        setUserProgress(updatedProgress);
+
+        // Set feedback and store correct answer if wrong
+        setGameState((prev) => ({
+          ...prev,
+          feedback: isCorrect ? "correct" : "incorrect",
+          sessionStats: newSessionStats,
+        }));
+
+        // Store correct answer for display if the answer was wrong
+        if (!isCorrect) {
+          setCorrectAnswer(correctSentenceAnswer);
+          // Don't auto-advance on wrong answer - user must click "Next" button
+        } else {
+          if (!evaluation.matchedViaFuzzy) {
+            // Move to next sentence after feedback delay (only on clean correct answer)
+            setTimeout(() => {
+              const nextSentence = sentenceManager.getNextSentenceWithHintReset();
+              const scrambledWords = nextSentence
+                ? sentenceManager.getScrambledWords(nextSentence)
+                : [];
+
+              setGameState((prev) => ({
+                ...prev,
+                currentSentence: nextSentence,
+                scrambledWords: scrambledWords,
+                feedback: null,
+              }));
+              // Clear correct answer and hint text when moving to next sentence
+              setCorrectAnswer(null);
+              setCurrentHintText("");
+              setSentenceTypos(null);
+              setLastSentenceAttempt([]);
+              setSentenceMatchedFuzzy(false);
+            }, 1500);
+          }
+        }
       }
     },
     [
       gameState.currentWord,
       gameState.currentVerb,
+      gameState.currentSentence,
       gameState.mode,
       gameState.contentType,
       gameState.verbMode,
@@ -407,8 +550,13 @@ function App() {
       gameState.practiceFormat,
       wordManager,
       verbManager,
+      sentenceManager,
       userProgress,
       updateSessionStats,
+      allWords,
+      allVerbs,
+      allSentences,
+      sentenceMatchedFuzzy,
     ],
   );
 
@@ -446,16 +594,30 @@ function App() {
           hintLevel,
         );
         setCurrentHintText(hintText);
+      } else if (gameState.contentType === "sentences") {
+        if (!gameState.currentSentence || !sentenceManager) return;
+
+        // Record hint usage for statistics
+        sentenceManager.recordHintUsage(hintLevel);
+
+        // Get hint text for the current level and display it
+        const hintText = sentenceManager.getHintForCurrentLevel(
+          gameState.currentSentence,
+          hintLevel,
+        );
+        setCurrentHintText(hintText);
       }
     },
     [
       gameState.currentWord,
       gameState.currentVerb,
+      gameState.currentSentence,
       gameState.contentType,
       gameState.mode,
       gameState.currentVerbForm,
       wordManager,
       verbManager,
+      sentenceManager,
     ],
   );
 
@@ -483,17 +645,44 @@ function App() {
         gameState.currentVerb,
         gameState.currentVerbForm,
       );
+    } else if (gameState.contentType === "sentences") {
+      if (!gameState.currentSentence || !sentenceManager) return null;
+      return sentenceManager.getCorrectAnswer(gameState.currentSentence);
     }
     return null;
   }, [
     gameState.currentWord,
     gameState.currentVerb,
+    gameState.currentSentence,
     gameState.contentType,
     gameState.mode,
     gameState.currentVerbForm,
     wordManager,
     verbManager,
+    sentenceManager,
   ]);
+
+  // Handle manual advance to next sentence (after wrong answer)
+  const handleNextSentence = useCallback(() => {
+    if (!sentenceManager) return;
+
+    const nextSentence = sentenceManager.getNextSentenceWithHintReset();
+    const scrambledWords = nextSentence
+      ? sentenceManager.getScrambledWords(nextSentence)
+      : [];
+
+    setGameState((prev) => ({
+      ...prev,
+      currentSentence: nextSentence,
+      scrambledWords: scrambledWords,
+      feedback: null,
+    }));
+    setCorrectAnswer(null);
+    setCurrentHintText("");
+    setSentenceTypos(null);
+    setLastSentenceAttempt([]);
+    setSentenceMatchedFuzzy(false);
+  }, [sentenceManager]);
 
   // Handle mode change
   const handleModeChange = useCallback(
@@ -505,6 +694,8 @@ function App() {
       }));
       setCorrectAnswer(null);
       setCurrentHintText("");
+      setSentenceTypos(null);
+      setLastSentenceAttempt([]);
 
       // Reset hint state in managers
       if (wordManager) {
@@ -513,8 +704,11 @@ function App() {
       if (verbManager) {
         verbManager.resetHintState();
       }
+      if (sentenceManager) {
+        sentenceManager.resetHintState();
+      }
     },
-    [wordManager, verbManager],
+    [wordManager, verbManager, sentenceManager],
   );
 
   // Handle content type change
@@ -523,10 +717,14 @@ function App() {
       if (newContentType === "words") {
         if (!wordManager) return;
         const firstWord = wordManager.getCurrentWord();
+        const targetPracticeFormat =
+          gameState.contentType === "sentences"
+            ? nonSentencePracticeFormat
+            : gameState.practiceFormat;
 
         // Generate MC options if in MC mode
         let mcOptions: string[] = [];
-        if (gameState.practiceFormat === "multiple-choice" && firstWord) {
+        if (targetPracticeFormat === "multiple-choice" && firstWord) {
           mcOptions = generateWordMultipleChoiceOptions(
             wordManager.getAllWords(),
             firstWord,
@@ -540,17 +738,24 @@ function App() {
           currentWord: firstWord,
           currentVerb: null,
           currentVerbForm: null,
+          currentSentence: null,
+          scrambledWords: [],
           feedback: null,
+          practiceFormat: targetPracticeFormat,
           multipleChoiceOptions: mcOptions,
         }));
       } else if (newContentType === "verbs") {
         if (!verbManager) return;
         const firstVerb = verbManager.getCurrentVerb();
         const firstVerbForm = verbManager.getVerbFormByMode(gameState.verbMode);
+        const targetPracticeFormat =
+          gameState.contentType === "sentences"
+            ? nonSentencePracticeFormat
+            : gameState.practiceFormat;
 
         // Generate MC options if in MC mode
         let mcOptions: string[] = [];
-        if (gameState.practiceFormat === "multiple-choice" && firstVerb) {
+        if (targetPracticeFormat === "multiple-choice" && firstVerb) {
           mcOptions = generateVerbMultipleChoiceOptions(
             verbManager.getAllVerbs(),
             firstVerb,
@@ -564,14 +769,42 @@ function App() {
           currentWord: null,
           currentVerb: firstVerb,
           currentVerbForm: firstVerbForm,
+          currentSentence: null,
+          scrambledWords: [],
           feedback: null,
+          practiceFormat: targetPracticeFormat,
           multipleChoiceOptions: mcOptions,
         }));
-      }
+      } else if (newContentType === "sentences") {
+        if (!sentenceManager) return;
+        if (gameState.contentType !== "sentences") {
+          setNonSentencePracticeFormat(gameState.practiceFormat);
+        }
+        const firstSentence = sentenceManager.getCurrentSentence();
+        const scrambledWords = firstSentence
+          ? sentenceManager.getScrambledWords(firstSentence)
+          : [];
 
-      // Clear hint state when switching content types
-      setCorrectAnswer(null);
-      setCurrentHintText("");
+      setGameState((prev) => ({
+        ...prev,
+        contentType: newContentType,
+        practiceFormat: "multiple-choice",
+        currentWord: null,
+        currentVerb: null,
+        currentVerbForm: null,
+        currentSentence: firstSentence,
+        scrambledWords: scrambledWords,
+        feedback: null,
+        multipleChoiceOptions: [],
+      }));
+    }
+
+    // Clear hint state when switching content types
+    setCorrectAnswer(null);
+    setCurrentHintText("");
+    setSentenceTypos(null);
+    setLastSentenceAttempt([]);
+    setSentenceMatchedFuzzy(false);
 
       // Reset hint state in managers
       if (wordManager) {
@@ -580,13 +813,19 @@ function App() {
       if (verbManager) {
         verbManager.resetHintState();
       }
+      if (sentenceManager) {
+        sentenceManager.resetHintState();
+      }
     },
     [
       wordManager,
       verbManager,
+      sentenceManager,
       gameState.verbMode,
       gameState.practiceFormat,
       gameState.mode,
+      gameState.contentType,
+      nonSentencePracticeFormat,
     ],
   );
 
@@ -609,6 +848,10 @@ function App() {
   // Handle practice format change
   const handlePracticeFormatChange = useCallback(
     (newFormat: PracticeFormat) => {
+      if (gameState.contentType !== "sentences") {
+        setNonSentencePracticeFormat(newFormat);
+      }
+
       // Generate MC options for current question if switching to MC mode
       let mcOptions: string[] = [];
       if (newFormat === "multiple-choice") {
@@ -712,10 +955,7 @@ function App() {
         setCorrectAnswer(null);
         setCurrentHintText("");
 
-        // Reset input field
-        if (inputFieldRef.current) {
-          inputFieldRef.current.reset();
-        }
+        // Input field clears itself when feedback changes
       }, 1500); // Match the timing of correct answer feedback
     },
     [wordManager, gameState.mode],
@@ -755,9 +995,33 @@ function App() {
       if (verbManager) {
         verbManager.setSRSConfig(newConfig);
       }
+      if (sentenceManager) {
+        sentenceManager.setSRSConfig(newConfig);
+      }
     },
-    [wordManager, verbManager],
+    [wordManager, verbManager, sentenceManager],
   );
+
+  // Focus "Next Sentence" when it becomes available in input mode
+  useEffect(() => {
+    const shouldFocusNext =
+      gameState.contentType === "sentences" &&
+      gameState.practiceFormat === "input" &&
+      (gameState.feedback === "incorrect" ||
+        (gameState.feedback === "correct" && sentenceMatchedFuzzy));
+
+    if (shouldFocusNext && nextSentenceButtonRef.current) {
+      const timer = window.setTimeout(() => {
+        nextSentenceButtonRef.current?.focus();
+      }, 150);
+      return () => window.clearTimeout(timer);
+    }
+  }, [
+    gameState.contentType,
+    gameState.practiceFormat,
+    gameState.feedback,
+    sentenceMatchedFuzzy,
+  ]);
 
   if (gameState.isLoading) {
     return (
@@ -888,7 +1152,7 @@ function App() {
 
               {/* Main Learning Area */}
               <div className="space-y-4">
-                {gameState.contentType === "words" ? (
+                {gameState.contentType === "words" && (
                   <WordCard
                     key={
                       gameState.currentWord
@@ -901,7 +1165,8 @@ function App() {
                     correctAnswer={correctAnswer || undefined}
                     onMarkAsKnown={handleMarkAsKnown}
                   />
-                ) : (
+                )}
+                {gameState.contentType === "verbs" && (
                   <VerbCard
                     verb={gameState.currentVerb}
                     verbForm={gameState.currentVerbForm}
@@ -916,25 +1181,98 @@ function App() {
                     correctAnswer={correctAnswer || undefined}
                   />
                 )}
+                {gameState.contentType === "sentences" && (
+                  <SentenceCard
+                    key={
+                      gameState.currentSentence
+                        ? gameState.currentSentence.id
+                        : "no-sentence"
+                    }
+                    sentence={gameState.currentSentence}
+                    feedback={gameState.feedback}
+                    correctAnswer={correctAnswer || undefined}
+                  />
+                )}
 
                 <div className="flex flex-col items-center space-y-4">
-                  <InputField
-                    ref={inputFieldRef}
-                    onSubmit={handleAnswerSubmit}
-                    feedback={gameState.feedback}
-                    disabled={gameState.feedback !== null}
-                    placeholder={
-                      gameState.contentType === "words"
-                        ? `Type ${gameState.mode === "nl-en" ? "English" : "Dutch"} translation...`
-                        : `Type the ${gameState.currentVerbForm && verbManager ? verbManager.getVerbFormLabel(gameState.currentVerbForm).toLowerCase() : "verb form"}...`
-                    }
-                    hintText={currentHintText}
-                    correctAnswer={getCurrentCorrectAnswer() || undefined}
-                    onHintUsed={handleHintUsed}
-                    onShowAnswer={handleShowAnswer}
-                    practiceFormat={gameState.practiceFormat}
-                    multipleChoiceOptions={gameState.multipleChoiceOptions}
-                  />
+                  {gameState.contentType === "sentences" &&
+                  gameState.practiceFormat === "multiple-choice" ? (
+                    <SentenceConstructionInput
+                      scrambledWords={gameState.scrambledWords}
+                      correctAnswer={getCurrentCorrectAnswer() || ""}
+                      onSubmit={handleAnswerSubmit}
+                      onNext={handleNextSentence}
+                      showNextButton={
+                        gameState.feedback === "incorrect" ||
+                        (gameState.feedback === "correct" && sentenceMatchedFuzzy)
+                      }
+                      disabled={gameState.feedback !== null}
+                      feedback={gameState.feedback}
+                    />
+                  ) : (
+                    <InputField
+                      ref={inputFieldRef}
+                      onSubmit={handleAnswerSubmit}
+                      feedback={gameState.feedback}
+                      disabled={gameState.feedback !== null}
+                      placeholder={
+                        gameState.contentType === "words"
+                          ? `Type ${gameState.mode === "nl-en" ? "English" : "Dutch"} translation...`
+                          : gameState.contentType === "verbs"
+                            ? `Type the ${gameState.currentVerbForm && verbManager ? verbManager.getVerbFormLabel(gameState.currentVerbForm).toLowerCase() : "verb form"}...`
+                            : "Type the full Dutch sentence..."
+                      }
+                      hintText={currentHintText}
+                      correctAnswer={getCurrentCorrectAnswer() || undefined}
+                      onHintUsed={handleHintUsed}
+                      onShowAnswer={handleShowAnswer}
+                      practiceFormat={gameState.practiceFormat}
+                      multipleChoiceOptions={gameState.multipleChoiceOptions}
+                      preserveSubmittedOnFeedback={gameState.contentType === "sentences"}
+                      questionKey={
+                        gameState.contentType === "words" && gameState.currentWord
+                          ? `word-${gameState.currentWord.dutch}-${gameState.mode}`
+                          : gameState.contentType === "verbs" &&
+                              gameState.currentVerb &&
+                              gameState.currentVerbForm
+                            ? `verb-${gameState.currentVerb.infinitive}-${gameState.currentVerbForm}`
+                            : gameState.contentType === "sentences" &&
+                                gameState.currentSentence
+                              ? `sentence-${gameState.currentSentence.id}`
+                              : "no-question"
+                      }
+                    />
+                  )}
+
+                  {gameState.contentType === "sentences" &&
+                    gameState.feedback === "correct" &&
+                    sentenceTypos &&
+                    sentenceTypos.length > 0 && (
+                      <SentenceTypoNotice
+                        typos={sentenceTypos}
+                        userWords={lastSentenceAttempt}
+                        correctWords={
+                          gameState.currentSentence
+                            ? gameState.currentSentence.dutch.split(/\s+/)
+                            : correctAnswer?.split(/\s+/) || []
+                        }
+                      />
+                    )}
+
+                  {gameState.contentType === "sentences" &&
+                    gameState.practiceFormat === "input" &&
+                    (gameState.feedback === "incorrect" ||
+                      (gameState.feedback === "correct" && sentenceMatchedFuzzy)) && (
+                      <div className="card-bg rounded-xl p-3 flex justify-center w-full max-w-md">
+                        <button
+                          ref={nextSentenceButtonRef}
+                          onClick={handleNextSentence}
+                          className="flex-1 px-6 py-2 rounded-lg font-medium transition-all duration-200 bg-blue-500 text-white border-2 border-blue-400 hover:bg-blue-600 hover:scale-105 active:scale-95"
+                        >
+                          Next Sentence →
+                        </button>
+                      </div>
+                    )}
                 </div>
               </div>
 
