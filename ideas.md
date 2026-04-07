@@ -11,6 +11,7 @@
 - [ ] Audio Pronunciation - 9/10
       Add text-to-speech for Dutch words/verbs with native accent. Helps with speaking/listening skills - essential for
       language learning beyond written practice.
+- lol
 
 - [x] Multiple Choice Mode - 8/10
       Alternative practice format with 4 answer options. Lower barrier for beginners, faster practice sessions, good for

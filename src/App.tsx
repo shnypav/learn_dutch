@@ -41,6 +41,7 @@ import {
   getCardCategoryCounts,
 } from "./utils/srsScheduler";
 import { useTheme } from "./contexts/ThemeContext";
+import { useAuth } from "./contexts/AuthContext";
 import type { HintLevel } from "./utils/hintGenerator";
 
 // Components
@@ -64,6 +65,7 @@ import PracticeFormatSwitcher from "./components/PracticeFormatSwitcher";
 
 function App() {
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [gameState, setGameState] = useState<GameState>({
     currentWord: null,
     currentVerb: null,
@@ -1085,6 +1087,20 @@ function App() {
           >
             ⚙️
           </button>
+          <div className="flex items-center space-x-2 ml-2 pl-2 border-l border-white/20">
+            {user?.displayName && (
+              <span className="text-sm text-secondary hidden sm:inline">
+                {user.displayName}
+              </span>
+            )}
+            <button
+              onClick={logout}
+              className="btn-primary px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 text-sm font-medium"
+              title="Sign out"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </header>
 
