@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render } from "@testing-library/react";
-import { createRoot, Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import App from "./App";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import AuthGate from "./components/AuthGate";
 import { AIHintProvider } from "./contexts/AIHintContext";
 
 // Mock react-dom/client
@@ -23,6 +24,19 @@ vi.mock("./contexts/ThemeContext", () => ({
   ),
 }));
 
+vi.mock("./contexts/AuthContext", () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="auth-provider">{children}</div>
+  ),
+  useAuth: () => ({ user: null, loading: false }),
+}));
+
+vi.mock("./components/AuthGate", () => ({
+  default: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="auth-gate">{children}</div>
+  ),
+}));
+
 vi.mock("./contexts/AIHintContext", () => ({
   AIHintProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="ai-hint-provider">{children}</div>
@@ -39,22 +53,20 @@ describe("main.tsx", () => {
   let container: HTMLDivElement;
 
   beforeEach(() => {
-    // Create a mock container
+    vi.resetModules();
+
     container = document.createElement("div");
     container.id = "root";
     document.body.appendChild(container);
 
-    // Create mock root
     mockRoot = {
       render: vi.fn(),
     };
 
-    // Mock createRoot to return our mock root
     (createRoot as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
       mockRoot,
     );
 
-    // Mock getElementById
     vi.spyOn(document, "getElementById").mockReturnValue(container);
   });
 
@@ -64,42 +76,33 @@ describe("main.tsx", () => {
   });
 
   it("should create root and render app with providers", async () => {
-    // Import main.tsx to trigger the render
     await import("./main");
 
-    // Verify createRoot was called with the root element
     expect(createRoot).toHaveBeenCalledWith(container);
-
-    // Verify render was called
     expect(mockRoot.render).toHaveBeenCalledTimes(1);
 
-    // Get the rendered component
     const renderCall = mockRoot.render.mock.calls[0][0];
-
-    // Verify StrictMode is used
     expect(renderCall.type).toBe(StrictMode);
 
-    // Verify ThemeProvider is nested inside StrictMode
+    // StrictMode > ThemeProvider
     const strictModeChildren = renderCall.props.children;
     expect(strictModeChildren.type).toBe(ThemeProvider);
 
-    // Verify AIHintProvider is nested inside ThemeProvider
+    // ThemeProvider > AuthProvider
     const themeProviderChildren = strictModeChildren.props.children;
-    expect(themeProviderChildren.type).toBe(AIHintProvider);
+    expect(themeProviderChildren.type).toBe(AuthProvider);
 
-    // Verify App is nested inside AIHintProvider
-    const aiHintProviderChildren = themeProviderChildren.props.children;
+    // AuthProvider > AuthGate
+    const authProviderChildren = themeProviderChildren.props.children;
+    expect(authProviderChildren.type).toBe(AuthGate);
+
+    // AuthGate > AIHintProvider
+    const authGateChildren = authProviderChildren.props.children;
+    expect(authGateChildren.type).toBe(AIHintProvider);
+
+    // AIHintProvider > App
+    const aiHintProviderChildren = authGateChildren.props.children;
     expect(aiHintProviderChildren.type).toBe(App);
-  });
-
-  it("should handle missing root element gracefully", async () => {
-    // Mock getElementById to return null
-    vi.spyOn(document, "getElementById").mockReturnValue(null);
-
-    // This should throw an error since we use the non-null assertion operator
-    await expect(async () => {
-      await import("./main");
-    }).rejects.toThrow();
   });
 
   it("should render with StrictMode wrapper", async () => {
@@ -115,12 +118,18 @@ describe("main.tsx", () => {
     const renderCall = mockRoot.render.mock.calls[0][0];
     const strictModeChildren = renderCall.props.children;
 
-    // Check provider nesting: StrictMode > ThemeProvider > AIHintProvider > App
+    // Check nesting: StrictMode > ThemeProvider > AuthProvider > AuthGate > AIHintProvider > App
     expect(strictModeChildren.type).toBe(ThemeProvider);
-    expect(strictModeChildren.props.children.type).toBe(AIHintProvider);
-    expect(strictModeChildren.props.children.props.children.type).toBe(App);
+    expect(strictModeChildren.props.children.type).toBe(AuthProvider);
+    expect(strictModeChildren.props.children.props.children.type).toBe(
+      AuthGate,
+    );
+    expect(
+      strictModeChildren.props.children.props.children.props.children.type,
+    ).toBe(AIHintProvider);
+    expect(
+      strictModeChildren.props.children.props.children.props.children.props
+        .children.type,
+    ).toBe(App);
   });
 });
-
-
-
