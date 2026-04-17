@@ -321,3 +321,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ---
 
 **Happy Learning! 🎉 Veel succes met het leren van Nederlands! 🇳🇱**
+
+Start your Dutch journey today and unlock a new world of conversation!
