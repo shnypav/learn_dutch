@@ -7,7 +7,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { auth } from "../config/firebase";
+import { auth, isAuthBypassed } from "../config/firebase";
 import type { AuthUser } from "../types/auth";
 
 interface AuthContextType {
@@ -21,6 +21,12 @@ interface AuthContextType {
   ) => Promise<void>;
   logout: () => Promise<void>;
 }
+
+const DEV_USER: AuthUser = {
+  uid: "dev-user",
+  email: null,
+  displayName: "Dev",
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -37,10 +43,13 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(
+    isAuthBypassed ? DEV_USER : null,
+  );
+  const [loading, setLoading] = useState(!isAuthBypassed);
 
   useEffect(() => {
+    if (!auth) return;
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser({
@@ -58,6 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
+    if (!auth) return;
     await signInWithEmailAndPassword(auth, email, password);
   };
 
@@ -66,6 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string,
     displayName?: string,
   ) => {
+    if (!auth) return;
     const credential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -77,6 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
+    if (!auth) return;
     await signOut(auth);
   };
 
