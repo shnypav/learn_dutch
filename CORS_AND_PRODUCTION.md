@@ -33,6 +33,16 @@ server: {
 
 ### How It Works
 
+Cards are categorized based on their interval:
+
+| Category     | Criteria            | Description                            |
+| ------------ | ------------------- | -------------------------------------- |
+| **New**      | `isNew = true`      | Never reviewed                         |
+| **Learning** | `interval = 0`      | Failed recent review, needs relearning |
+| **Young**    | `1 ≤ interval ≤ 21` | Recently learned, still consolidating  |
+| **Mature**   | `interval > 21`     | Well-learned, longer intervals         |
+
+
 ```
 Browser (localhost:5173)
     ↓ calls /api/perplexity/search
