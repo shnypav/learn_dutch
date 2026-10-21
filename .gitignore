@@ -24,4 +24,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.air/*
+.air/*!.air/cloud/
+.air/cloud/*
+!.air/cloud/startup.sh
