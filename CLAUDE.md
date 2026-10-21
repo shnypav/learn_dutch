@@ -11,6 +11,7 @@ A comprehensive, AI-powered Dutch language learning application built with React
 - **AI Integration**: Perplexity API for contextual hints with caching
 - **Data**: CSV-based vocabulary and verb datasets
 
+<!-- hello another comment -->
 ## Quick Start
 
 ```bash
